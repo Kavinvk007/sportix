@@ -1,0 +1,2653 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+# Environments
+.env
+.venv
+venv/
+ENV/
+env/
+# IDE files
+.vscode/
+.idea/
+# Local databases
+*.sqlite
+*.sqlite3
+# Sportix - Premium Sports E-Commerce Shop
+Sportix is a modern, high-energy, responsive sports equipment and accessories web application built using **Python FastAPI** on the backend, **MySQL** for data persistence, and a premium **HTML5/Vanilla CSS/JavaScript** frontend client.
+## Features
+- ⚡ **Decoupled Architecture**: Independent Python FastAPI backend serving REST APIs + static client-side frontend using `fetch()`.
+- 🗄️ **MySQL Database**: Persistent storage for products, catalog metadata, orders, and order items.
+- 🎨 **Premium Aesthetics**: Dark Slate and glowing Neon design system, glassmorphic card overlays, responsive CSS grid layout, theme toggles, and customized scrolling animations.
+- 🛒 **Interactive E-Commerce Flow**: Category tabs, instant searching, price range filter slider, slide-out Cart Drawer sidebar, Checkout form validation, and simulated payment processing.
+- ⚙️ **Auto Seeder**: Python initialization script to check, create, and populate the database with premium accessories for all major sports (Cricket, Football, Basketball, Tennis, Badminton, Gym, and Running).
+---
+## Folder Structure
+```
+sportix/
+├── backend/
+│   ├── main.py            # FastAPI Application & REST API router
+│   ├── database.py        # SQLAlchemy Connection engine configuration
+│   ├── models.py          # SQLAlchemy Models (Product, Order, OrderItem)
+│   ├── init_db.py         # DB creation and seed data script
+│   └── requirements.txt   # Python dependencies
+├── frontend/
+│   ├── index.html         # Main E-commerce web layout
+│   ├── style.css          # Design system stylesheet
+│   └── app.js             # Cart actions, modal controls, API integrations
+└── .gitignore             # Git ignore list
+```
+---
+## Setup & Running Instructions
+### 1. Database Setup (MySQL)
+Make sure your MySQL server is running locally (e.g., via XAMPP, WampServer, or direct installation).
+By default, the application is configured to connect to MySQL using:
+- **Host**: `localhost`
+- **Port**: `3306`
+- **Username**: `root`
+- **Password**: *(empty/none)*
+*Note: You can override these connection credentials by setting environment variables in your terminal before running scripts (e.g., `set DB_PASSWORD=yourpassword` on Windows).*
+### 2. Install Python Dependencies
+Open your terminal inside the `backend` folder and run:
+```bash
+pip install -r requirements.txt
+```
+### 3. Initialize & Seed Database
+Initialize the tables and seed the database with products by running:
+```bash
+python init_db.py
+```
+This script will:
+- Connect to your MySQL server.
+- Create the database `sportix` if it doesn't exist.
+- Build tables for products, orders, and order items.
+- Seed the table with 15 premium sports accessories.
+### 4. Run the Backend API
+Start the FastAPI server via Uvicorn:
+```bash
+uvicorn main:app --reload
+```
+The server will start at `http://127.0.0.1:8000`. You can inspect the interactive Swagger API documentation at:
+👉 **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**
+### 5. Launch the Frontend
+You can launch the frontend client simply by:
+- Double-clicking `frontend/index.html` to open it in your browser.
+- Or using a local server extension (like Live Server in VS Code) for `frontend/index.html`.
+---
+## Linking to GitHub
+To push this project to your own GitHub repository, execute these commands in the root `sportix` folder:
+```bash
+# 1. Create a repository on GitHub (e.g., named "sportix")
+# 2. Link your local project to it:
+git remote add origin https://github.com/YOUR_USERNAME/sportix.git
+# 3. Rename the branch to main
+git branch -M main
+# 4. Push the code
+git push -u origin main
+```
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+# Database configuration
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "3306")
+DB_NAME = os.getenv("DB_NAME", "sportix")
+DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Setup SQLAlchemy engine and sessions
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+# Dependency to get db session in FastAPI routes
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+import os
+import pymysql
+from sqlalchemy import create_engine, text
+from database import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, Base, engine, SessionLocal
+from models import Product
+def create_database_if_not_exists():
+    print(f"Connecting to MySQL server at {DB_HOST}:{DB_PORT} to check for database '{DB_NAME}'...")
+    try:
+        # Connect to MySQL server without database
+        conn = pymysql.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            port=int(DB_PORT)
+        )
+        cursor = conn.cursor()
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print(f"Database '{DB_NAME}' created or already exists.")
+    except Exception as e:
+        print(f"ERROR: Could not connect to MySQL server. Please make sure MySQL is running on {DB_HOST}:{DB_PORT} and credentials are correct.")
+        print(f"Details: {e}")
+        raise e
+def seed_products(db):
+    # Check if we already have products
+    existing_count = db.query(Product).count()
+    if existing_count > 0:
+        print(f"Product table already contains {existing_count} products. Skipping seeding.")
+        return
+    print("Seeding initial sports products and accessories...")
+    products = [
+        Product(
+            name="Kookaburra Kahuna English Willow Bat",
+            description="Premium Grade 2 English Willow cricket bat with a massive profile, light pick-up, and hand-crafted spine for ultimate power and control.",
+            price=149.99,
+            category="Cricket",
+            rating=4.8,
+            image_url="cricket_bat.png",
+            sizes="Short Handle,Long Handle",
+            colors="Natural Wood",
+            stock=15
+        ),
+        Product(
+            name="Kookaburra Turf Leather Balls (Pack of 6)",
+            description="Official match-grade leather cricket balls. Hand-stitched with premium alum-tanned leather for excellent shape retention and seam durability.",
+            price=79.99,
+            category="Cricket",
+            rating=4.5,
+            image_url="cricket_balls.png",
+            sizes="Standard 5.5oz",
+            colors="Red,White,Pink",
+            stock=20
+        ),
+        Product(
+            name="Sportix Pro Protective Batting Pads",
+            description="Ultra-lightweight high-density foam cricket batting pads. Offers maximum protection, comfortable knee roll support, and quick-release straps.",
+            price=59.99,
+            category="Cricket",
+            rating=4.6,
+            image_url="cricket_pads.png",
+            sizes="Youth,Adult",
+            colors="White",
+            stock=12
+        ),
+        Product(
+            name="Adidas Al Rihla Match Football",
+            description="A premium, FIFA Quality Pro certified match ball. Features speex shell panel shapes for improved aerodynamics, flight stability, and precision.",
+            price=44.99,
+            category="Football",
+            rating=4.7,
+            image_url="football.png",
+            sizes="Size 4,Size 5",
+            colors="Multi-color White",
+            stock=25
+        ),
+        Product(
+            name="Sportix Grip-Max Goalkeeper Gloves",
+            description="Professional goalkeeper gloves with 4mm German latex palm for superior grip in all weather. Features ergonomic finger saves and double elastic wrist strap.",
+            price=29.99,
+            category="Football",
+            rating=4.4,
+            image_url="goalkeeper_gloves.png",
+            sizes="8,9,10",
+            colors="Neon Green,Carbon Black",
+            stock=18
+        ),
+        Product(
+            name="Wilson Evolution Indoor Basketball",
+            description="The preferred high school and college game basketball. Built with a microfiber composite leather cover for unmatched grip, feel, and durability.",
+            price=59.99,
+            category="Basketball",
+            rating=4.9,
+            image_url="basketball.png",
+            sizes="Size 6 (28.5\"),Size 7 (29.5\")",
+            colors="Classic Orange",
+            stock=30
+        ),
+        Product(
+            name="Sportix Elite Basketball Jersey",
+            description="Lightweight, ultra-breathable moisture-wicking mesh basketball jersey with modern athletic cut and sublimation graphics.",
+            price=34.99,
+            category="Basketball",
+            rating=4.3,
+            image_url="basketball_jersey.png",
+            sizes="S,M,L,XL,XXL",
+            colors="Stealth Black,Electric Cyan",
+            stock=40
+        ),
+        Product(
+            name="Wilson Pro Staff 97 Tennis Racket",
+            description="Designed for precision and control. Carbon fiber frame with Braid 45 construction for improved pocketing feel and stability during aggressive swings.",
+            price=219.99,
+            category="Tennis",
+            rating=4.8,
+            image_url="tennis_racket.png",
+            sizes="4 1/4 Grip,4 3/8 Grip",
+            colors="Matte Black",
+            stock=8
+        ),
+        Product(
+            name="Wilson Championship Tennis Balls (3-Ball Can)",
+            description="Premium extra-duty felt tennis balls suitable for all court surfaces. Long-lasting pressure cores provide consistent bounce and response.",
+            price=7.99,
+            category="Tennis",
+            rating=4.5,
+            image_url="tennis_balls.png",
+            sizes="Standard Can",
+            colors="Neon Yellow",
+            stock=100
+        ),
+        Product(
+            name="Yonex Muscle Power 29 Badminton Racket",
+            description="Full graphite frame and shaft badminton racket. Muscle Power frame locates the string on rounded archways that eliminate stress friction.",
+            price=49.99,
+            category="Badminton",
+            rating=4.6,
+            image_url="badminton_racket.png",
+            sizes="G4 Grip,G5 Grip",
+            colors="Cyan Blue,Vibrant Red",
+            stock=22
+        ),
+        Product(
+            name="Sportix Adjustable Dumbbells (Pair, 24kg)",
+            description="All-in-one adjustable dumbbells. Dial-turn weight adjustment system from 2.5kg to 24kg. Durable molding around metal plates for smooth lifts.",
+            price=189.99,
+            category="Fitness & Gym",
+            rating=4.7,
+            image_url="dumbbells.png",
+            sizes="24kg Pair",
+            colors="Stealth Chrome Black",
+            stock=10
+        ),
+        Product(
+            name="Fitbit Charge 6 Fitness Tracker",
+            description="Advanced fitness tracker with built-in GPS, active zone minutes, 24/7 heart rate monitoring, sleep tracking, and up to 7-day battery life.",
+            price=129.99,
+            category="Fitness & Gym",
+            rating=4.6,
+            image_url="fitness_tracker.png",
+            sizes="Standard Fit",
+            colors="Obsidian Black,Coral Red,Porcelain",
+            stock=14
+        ),
+        Product(
+            name="Sportix Stainless Steel Bottle (1L)",
+            description="Double-walled vacuum insulated water bottle. Keeps water ice cold for 24 hours or piping hot for 12. Leak-proof straw lid and powder-coated grip.",
+            price=24.99,
+            category="Fitness & Gym",
+            rating=4.5,
+            image_url="water_bottle.png",
+            sizes="1 Liter",
+            colors="Matte Black,Arctic Silver,Aqua Blue",
+            stock=50
+        ),
+        Product(
+            name="Nike Air Zoom Pegasus 40 Running Shoes",
+            description="The pegasus returns with responsive cushioning, springy ride, and improved collar padding. Engineered mesh upper for lightweight breathability.",
+            price=119.99,
+            category="Running",
+            rating=4.8,
+            image_url="running_shoes.png",
+            sizes="8,9,10,11,12",
+            colors="Neon Lime,Classic White,Stealth Black",
+            stock=16
+        ),
+        Product(
+            name="Sportix Trail Hydration Vest (2L Bladder)",
+            description="Ultra-running trail vest with 2-liter leak-proof hydration bladder, breathable mesh straps, and multiple quick-access pockets for gels and flasks.",
+            price=39.99,
+            category="Running",
+            rating=4.4,
+            image_url="hydration_vest.png",
+            sizes="S/M,L/XL",
+            colors="Dark Slate Grey",
+            stock=15
+        )
+    ]
+    
+    db.add_all(products)
+    db.commit()
+    print("Database successfully seeded with 15 premium sports items.")
+def main():
+    try:
+        create_database_if_not_exists()
+        print("Creating tables in database...")
+        Base.metadata.create_all(bind=engine)
+        print("Tables created successfully.")
+        
+        db = SessionLocal()
+        try:
+            seed_products(db)
+        finally:
+            db.close()
+        print("Database initialization complete.")
+    except Exception as e:
+        print(f"Failed to initialize database: {e}")
+if __name__ == "__main__":
+    main()
+from typing import List, Optional
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, EmailStr
+from sqlalchemy.orm import Session
+import models
+from database import engine, get_db
+app = FastAPI(
+    title="Sportix E-Commerce API",
+    description="Backend API for Sportix Sports Shop with product catalogs and ordering",
+    version="1.0.0"
+)
+# Configure CORS so the frontend can easily communicate with it locally
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# Pydantic Schemas for validation
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    price: float
+    category: str
+    rating: float
+    image_url: Optional[str] = None
+    sizes: Optional[str] = None
+    colors: Optional[str] = None
+    stock: int
+    class Config:
+        from_attributes = True
+class CartItemInput(BaseModel):
+    product_id: int
+    quantity: int
+class CheckoutInput(BaseModel):
+    customer_name: str
+    email: EmailStr
+    address: str
+    items: List[CartItemInput]
+class OrderItemResponse(BaseModel):
+    id: int
+    product_id: int
+    quantity: int
+    price: float
+    class Config:
+        from_attributes = True
+class OrderResponse(BaseModel):
+    id: int
+    customer_name: str
+    email: str
+    address: str
+    total_price: float
+    created_at: str
+    class Config:
+        from_attributes = True
+@app.get("/")
+def read_root():
+    return {
+        "message": "Welcome to Sportix API",
+        "docs": "/docs",
+        "status": "healthy"
+    }
+@app.get("/api/products", response_model=List[ProductResponse])
+def get_products(
+    category: Optional[str] = None,
+    search: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    sort_by: Optional[str] = None,  # price_asc, price_desc, rating_desc
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Product)
+    # Filtering by category
+    if category and category.lower() != "all":
+        query = query.filter(models.Product.category == category)
+    # Search filter (name or description)
+    if search:
+        query = query.filter(
+            (models.Product.name.ilike(f"%{search}%")) |
+            (models.Product.description.ilike(f"%{search}%"))
+        )
+    # Price range filters
+    if min_price is not None:
+        query = query.filter(models.Product.price >= min_price)
+    if max_price is not None:
+        query = query.filter(models.Product.price <= max_price)
+    # Sorting
+    if sort_by == "price_asc":
+        query = query.order_by(models.Product.price.asc())
+    elif sort_by == "price_desc":
+        query = query.order_by(models.Product.price.desc())
+    elif sort_by == "rating_desc":
+        query = query.order_by(models.Product.rating.desc())
+    else:
+        # Default sort
+        query = query.order_by(models.Product.id.asc())
+    return query.all()
+@app.get("/api/products/{product_id}", response_model=ProductResponse)
+def get_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product with id {product_id} not found"
+        )
+    return product
+@app.post("/api/checkout", status_code=status.HTTP_201_CREATED)
+def checkout(order_data: CheckoutInput, db: Session = Depends(get_db)):
+    if not order_data.items:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cart cannot be empty for checkout"
+        )
+    # Verify products and calculate total price
+    total_price = 0.0
+    items_to_create = []
+    for item in order_data.items:
+        product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Product with id {item.product_id} not found"
+            )
+        if product.stock < item.quantity:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Not enough stock for product '{product.name}'. Available: {product.stock}, Requested: {item.quantity}"
+            )
+        # Deduct stock
+        product.stock -= item.quantity
+        
+        item_total = product.price * item.quantity
+        total_price += item_total
+        
+        # Prepare OrderItem
+        order_item = models.OrderItem(
+            product_id=product.id,
+            quantity=item.quantity,
+            price=product.price
+        )
+        items_to_create.append(order_item)
+    # Create the Order
+    new_order = models.Order(
+        customer_name=order_data.customer_name,
+        email=order_data.email,
+        address=order_data.address,
+        total_price=round(total_price, 2),
+        items=items_to_create
+    )
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+    return {
+        "success": True,
+        "message": "Order placed successfully",
+        "order_id": new_order.id,
+        "total_price": new_order.total_price,
+        "created_at": new_order.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    }
+import datetime
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from database import Base
+class Product(Base):
+    __tablename__ = "products"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    price = Column(Float, nullable=False)
+    category = Column(String(50), nullable=False)
+    rating = Column(Float, default=4.5)
+    image_url = Column(String(255), nullable=True)
+    sizes = Column(String(100), nullable=True)  # e.g., "S,M,L,XL" or "7,8,9,10"
+    colors = Column(String(100), nullable=True)  # e.g., "Red,Blue,Black"
+    stock = Column(Integer, default=10)
+class Order(Base):
+    __tablename__ = "orders"
+    id = Column(Integer, primary_key=True, index=True)
+    customer_name = Column(String(100), nullable=False)
+    email = Column(String(100), nullable=False)
+    address = Column(Text, nullable=False)
+    total_price = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    # Relationship to order items
+    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+class OrderItem(Base):
+    __tablename__ = "order_items"
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    price = Column(Float, nullable=False)
+    # Relationships
+    order = relationship("Order", back_populates="items")
+    product = relationship("Product")
+fastapi
+uvicorn
+sqlalchemy
+pymysql
+cryptography
+/* Sportix Frontend Logic */
+const API_BASE = "http://127.0.0.1:8000";
+// App State
+let products = [];
+let cart = JSON.parse(localStorage.getItem("sportix_cart")) || [];
+let activeCategory = "all";
+let searchQuery = "";
+let maxPrice = 250;
+let inStockOnly = false;
+let sortBy = "default";
+let selectedSize = "";
+let selectedColor = "";
+// DOM Elements
+const productsGrid = document.getElementById("products-grid");
+const loadingSpinner = document.getElementById("loading-spinner");
+const noProducts = document.getElementById("no-products");
+const cartBadge = document.getElementById("cart-badge");
+const cartDrawer = document.getElementById("cart-drawer");
+const cartEmpty = document.getElementById("cart-empty");
+const cartItemsList = document.getElementById("cart-items-list");
+const drawerFooter = document.getElementById("drawer-footer");
+const cartSubtotal = document.getElementById("cart-subtotal");
+const themeToggleBtn = document.getElementById("theme-toggle");
+const searchInput = document.getElementById("product-search");
+const priceSlider = document.getElementById("price-range");
+const priceLimitLabel = document.getElementById("price-limit");
+const stockFilterCheckbox = document.getElementById("stock-filter");
+const sortSelect = document.getElementById("sort-select");
+const resetFiltersBtn = document.getElementById("reset-filters");
+const clearFiltersBtn = document.getElementById("clear-filters-btn");
+// Modals
+const detailsModal = document.getElementById("details-modal");
+const detailsContent = document.getElementById("details-content");
+const checkoutModal = document.getElementById("checkout-modal");
+const checkoutForm = document.getElementById("checkout-form");
+const checkoutSummaryItems = document.getElementById("checkout-summary-items");
+const checkoutSummaryTotal = document.getElementById("checkout-summary-total");
+const successModal = document.getElementById("success-modal");
+const successOrderId = document.getElementById("success-order-id");
+const successOrderTotal = document.getElementById("success-order-total");
+const successOrderTime = document.getElementById("success-order-time");
+// Emoji Map for Product Visuals
+const categoryEmojiMap = {
+    "cricket": "🏏",
+    "football": "⚽",
+    "basketball": "🏀",
+    "tennis": "🎾",
+    "badminton": "🏸",
+    "fitness & gym": "🏋️",
+    "running": "👟"
+};
+// Initialize Application
+document.addEventListener("DOMContentLoaded", () => {
+    initTheme();
+    fetchProducts();
+    updateCartUI();
+    registerEventListeners();
+});
+// Theme Logic
+function initTheme() {
+    const savedTheme = localStorage.getItem("sportix_theme") || "dark";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+}
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("sportix_theme", newTheme);
+    showToast(`Switched to ${newTheme} mode`);
+}
+// Fetch products from FastAPI Backend
+async function fetchProducts() {
+    showLoader(true);
+    
+    // Construct query parameters
+    let url = `${API_BASE}/api/products?`;
+    if (activeCategory !== "all") url += `category=${encodeURIComponent(activeCategory)}&`;
+    if (searchQuery) url += `search=${encodeURIComponent(searchQuery)}&`;
+    if (sortBy !== "default") url += `sort_by=${sortBy}&`;
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to load products");
+        products = await response.json();
+        
+        // Client-side filtering for price range and stock availability
+        filterAndRenderProducts();
+    } catch (error) {
+        console.error("API error:", error);
+        productsGrid.innerHTML = `
+            <div class="no-products" style="grid-column: 1/-1;">
+                <svg viewBox="0 0 24 24" width="48" height="48" stroke="red" stroke-width="1.5" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <h3>Backend Server Offline</h3>
+                <p>Could not connect to the Sportix FastAPI backend. Make sure the server is running on port 8000 and the database is initialized.</p>
+                <button class="btn btn-secondary btn-sm" onclick="location.reload()">Retry Connection</button>
+            </div>
+        `;
+        showLoader(false);
+    }
+}
+// Client Side Filter & Render
+function filterAndRenderProducts() {
+    let filtered = products.filter(p => p.price <= maxPrice);
+    
+    if (inStockOnly) {
+        filtered = filtered.filter(p => p.stock > 0);
+    }
+    
+    renderProductGrid(filtered);
+}
+function renderProductGrid(items) {
+    showLoader(false);
+    
+    if (items.length === 0) {
+        noProducts.classList.remove("hidden");
+        productsGrid.innerHTML = "";
+        return;
+    }
+    
+    noProducts.classList.add("hidden");
+    
+    productsGrid.innerHTML = items.map(product => {
+        const emoji = categoryEmojiMap[product.category.toLowerCase()] || "📦";
+        const isOutOfStock = product.stock <= 0;
+        
+        return `
+            <div class="product-card">
+                ${product.price < 50 ? '<span class="badge-sale">Sale</span>' : ''}
+                ${isOutOfStock ? '<span class="badge-outofstock">Out Of Stock</span>' : ''}
+                <div class="product-img-wrap">
+                    <span class="product-svg-icon">${emoji}</span>
+                </div>
+                <div class="product-category">${product.category}</div>
+                <h3 class="product-title">${product.name}</h3>
+                <div class="product-rating">
+                    <span class="star-icon">★</span>
+                    <span>${product.rating.toFixed(1)}</span>
+                    <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.25rem;">(In Stock: ${product.stock})</span>
+                </div>
+                <div class="product-footer">
+                    <span class="product-price">$${product.price.toFixed(2)}</span>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary btn-sm view-details-btn" data-id="${product.id}">Details</button>
+                        <button class="btn btn-primary btn-sm add-quick-btn" data-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+                            🛒
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+// Product Details Modal
+async function openProductDetails(id) {
+    try {
+        const response = await fetch(`${API_BASE}/api/products/${id}`);
+        if (!response.ok) throw new Error("Failed to fetch product details");
+        const product = await response.json();
+        
+        const emoji = categoryEmojiMap[product.category.toLowerCase()] || "📦";
+        const isOutOfStock = product.stock <= 0;
+        
+        const sizesList = product.sizes ? product.sizes.split(",") : [];
+        const colorsList = product.colors ? product.colors.split(",") : [];
+        
+        // Reset selections
+        selectedSize = sizesList[0] || "";
+        selectedColor = colorsList[0] || "";
+        
+        detailsContent.innerHTML = `
+            <div class="details-img-wrap">
+                <span>${emoji}</span>
+            </div>
+            <div class="details-info-wrap">
+                <span class="details-category">${product.category}</span>
+                <h2 class="details-title">${product.name}</h2>
+                <div class="details-rating">
+                    <span class="star-icon">★</span>
+                    <span style="font-weight: 600;">${product.rating.toFixed(1)}</span>
+                </div>
+                <div class="details-price">$${product.price.toFixed(2)}</div>
+                <p class="details-description">${product.description}</p>
+                
+                ${sizesList.length > 0 ? `
+                    <div class="option-group">
+                        <h4>Available Sizes</h4>
+                        <div class="options-list">
+                            ${sizesList.map((s, idx) => `
+                                <span class="option-item size-option ${idx === 0 ? 'selected' : ''}" data-value="${s}">${s}</span>
+                            `).join("")}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${colorsList.length > 0 ? `
+                    <div class="option-group">
+                        <h4>Available Colors</h4>
+                        <div class="options-list">
+                            ${colorsList.map((c, idx) => `
+                                <span class="option-item color-option ${idx === 0 ? 'selected' : ''}" data-value="${c}">${c}</span>
+                            `).join("")}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <div class="details-stock-status">
+                    Status: ${isOutOfStock ? 
+                        '<span class="stock-badge-out">Out of Stock</span>' : 
+                        `<span class="stock-badge-in">In Stock (${product.stock} units available)</span>`
+                    }
+                </div>
+                
+                <button id="modal-add-to-cart" class="btn btn-primary" ${isOutOfStock ? 'disabled' : ''}>
+                    Add Gear to Cart
+                </button>
+            </div>
+        `;
+        
+        // Size & Color selection listeners
+        document.querySelectorAll(".size-option").forEach(el => {
+            el.addEventListener("click", (e) => {
+                document.querySelectorAll(".size-option").forEach(o => o.classList.remove("selected"));
+                e.target.classList.add("selected");
+                selectedSize = e.target.dataset.value;
+            });
+        });
+        document.querySelectorAll(".color-option").forEach(el => {
+            el.addEventListener("click", (e) => {
+                document.querySelectorAll(".color-option").forEach(o => o.classList.remove("selected"));
+                e.target.classList.add("selected");
+                selectedColor = e.target.dataset.value;
+            });
+        });
+        // Add to Cart from Modal
+        document.getElementById("modal-add-to-cart").onclick = () => {
+            addToCart(product.id, selectedSize, selectedColor);
+            closeAllModals();
+        };
+        detailsModal.classList.add("active");
+    } catch (error) {
+        console.error(error);
+        showToast("Error loading product details", "danger");
+    }
+}
+// Cart Logic
+function addToCart(productId, size = "", color = "") {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    // Check if item already in cart with same size/color
+    const cartIndex = cart.findIndex(item => 
+        item.product_id === productId && 
+        item.size === size && 
+        item.color === color
+    );
+    
+    if (cartIndex > -1) {
+        if (cart[cartIndex].quantity >= product.stock) {
+            showToast(`Cannot add more. Only ${product.stock} items in stock.`, "danger");
+            return;
+        }
+        cart[cartIndex].quantity += 1;
+    } else {
+        cart.push({
+            product_id: productId,
+            name: product.name,
+            price: product.price,
+            category: product.category,
+            size: size,
+            color: color,
+            quantity: 1,
+            max_stock: product.stock
+        });
+    }
+    
+    saveCart();
+    updateCartUI();
+    showToast(`Added "${product.name}" to cart`);
+}
+function updateCartQuantity(productId, size, color, quantity) {
+    const cartIndex = cart.findIndex(item => 
+        item.product_id === productId && 
+        item.size === size && 
+        item.color === color
+    );
+    
+    if (cartIndex === -1) return;
+    
+    if (quantity <= 0) {
+        cart.splice(cartIndex, 1);
+    } else {
+        const item = cart[cartIndex];
+        if (quantity > item.max_stock) {
+            showToast(`Sorry, only ${item.max_stock} units available.`, "danger");
+            return;
+        }
+        item.quantity = quantity;
+    }
+    
+    saveCart();
+    updateCartUI();
+}
+function removeFromCart(productId, size, color) {
+    cart = cart.filter(item => 
+        !(item.product_id === productId && item.size === size && item.color === color)
+    );
+    saveCart();
+    updateCartUI();
+    showToast("Item removed from cart");
+}
+function saveCart() {
+    localStorage.setItem("sportix_cart", JSON.stringify(cart));
+}
+function updateCartUI() {
+    // Update badge count
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartBadge.textContent = totalItems;
+    
+    if (cart.length === 0) {
+        cartEmpty.classList.remove("hidden");
+        cartItemsList.innerHTML = "";
+        drawerFooter.classList.add("hidden");
+        return;
+    }
+    
+    cartEmpty.classList.add("hidden");
+    drawerFooter.classList.remove("hidden");
+    
+    let subtotal = 0;
+    
+    cartItemsList.innerHTML = cart.map(item => {
+        const itemTotal = item.price * item.quantity;
+        subtotal += itemTotal;
+        const emoji = categoryEmojiMap[item.category.toLowerCase()] || "📦";
+        
+        return `
+            <div class="cart-item">
+                <div class="cart-item-img">${emoji}</div>
+                <div class="cart-item-details">
+                    <h4 class="cart-item-title">${item.name}</h4>
+                    <div class="cart-item-meta">
+                        ${item.size ? `Size: ${item.size} | ` : ''} ${item.color ? `Color: ${item.color}` : ''}
+                    </div>
+                    <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+                </div>
+                <div class="qty-controls">
+                    <button class="qty-btn qty-minus" data-id="${item.product_id}" data-size="${item.size}" data-color="${item.color}">-</button>
+                    <span class="qty-val">${item.quantity}</span>
+                    <button class="qty-btn qty-plus" data-id="${item.product_id}" data-size="${item.size}" data-color="${item.color}">+</button>
+                </div>
+                <button class="icon-btn remove-cart-item" data-id="${item.product_id}" data-size="${item.size}" data-color="${item.color}" style="color: var(--danger);">
+                    🗑️
+                </button>
+            </div>
+        `;
+    }).join("");
+    
+    cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
+}
+// Checkout Process
+function openCheckout() {
+    if (cart.length === 0) return;
+    
+    let subtotal = 0;
+    checkoutSummaryItems.innerHTML = cart.map(item => {
+        const itemTotal = item.price * item.quantity;
+        subtotal += itemTotal;
+        return `
+            <div class="summary-item">
+                <span>${item.name} (x${item.quantity})</span>
+                <span>$${itemTotal.toFixed(2)}</span>
+            </div>
+        `;
+    }).join("");
+    
+    checkoutSummaryTotal.textContent = `$${subtotal.toFixed(2)}`;
+    
+    cartDrawer.classList.remove("active");
+    checkoutModal.classList.add("active");
+}
+async function handleCheckoutSubmit(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById("submit-order-btn");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Processing Order...";
+    
+    const orderItems = cart.map(item => ({
+        product_id: item.product_id,
+        quantity: item.quantity
+    }));
+    
+    const orderPayload = {
+        customer_name: document.getElementById("checkout-name").value,
+        email: document.getElementById("checkout-email").value,
+        address: document.getElementById("checkout-address").value,
+        items: orderItems
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/checkout`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(orderPayload)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.detail || "Checkout failed");
+        }
+        
+        // Order Successful
+        cart = [];
+        saveCart();
+        updateCartUI();
+        
+        checkoutModal.classList.remove("active");
+        
+        // Set success modal contents
+        successOrderId.textContent = `#${result.order_id}`;
+        successOrderTotal.textContent = `$${result.total_price.toFixed(2)}`;
+        successOrderTime.textContent = result.created_at;
+        
+        successModal.classList.add("active");
+        checkoutForm.reset();
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "An error occurred during checkout", "danger");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Place Order";
+    }
+}
+// Event Listeners Registration
+function registerEventListeners() {
+    // Theme toggle
+    themeToggleBtn.addEventListener("click", toggleTheme);
+    
+    // Search input
+    let searchTimeout;
+    searchInput.addEventListener("input", (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            searchQuery = e.target.value.trim();
+            fetchProducts();
+        }, 400); // Debounce search
+    });
+    
+    // Category click
+    document.querySelectorAll(".category-tab").forEach(tab => {
+        tab.addEventListener("click", (e) => {
+            document.querySelectorAll(".category-tab").forEach(t => t.classList.remove("active"));
+            e.target.classList.add("active");
+            activeCategory = e.target.dataset.category;
+            fetchProducts();
+        });
+    });
+    // Sidebar Category links (Footer)
+    document.querySelectorAll(".category-link").forEach(link => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const category = e.target.dataset.category;
+            const tab = document.querySelector(`.category-tab[data-category="${category}"]`);
+            if (tab) tab.click();
+            document.getElementById("shop-section").scrollIntoView({ behavior: "smooth" });
+        });
+    });
+    // Scroll to shop banner button
+    document.querySelector(".scroll-to-shop").addEventListener("click", () => {
+        document.getElementById("shop-section").scrollIntoView({ behavior: "smooth" });
+    });
+    
+    // Price Range Slider
+    priceSlider.addEventListener("input", (e) => {
+        maxPrice = parseFloat(e.target.value);
+        priceLimitLabel.textContent = `Max: $${maxPrice}`;
+        filterAndRenderProducts();
+    });
+    
+    // Stock Filter Checkbox
+    stockFilterCheckbox.addEventListener("change", (e) => {
+        inStockOnly = e.target.checked;
+        filterAndRenderProducts();
+    });
+    
+    // Sorting Selector
+    sortSelect.addEventListener("change", (e) => {
+        sortBy = e.target.value;
+        fetchProducts();
+    });
+    
+    // Reset Filters button
+    resetFiltersBtn.addEventListener("click", resetFilters);
+    clearFiltersBtn.addEventListener("click", resetFilters);
+    
+    // Open/Close Cart Drawer
+    document.querySelectorAll(".cart-trigger").forEach(btn => {
+        btn.addEventListener("click", () => cartDrawer.classList.add("active"));
+    });
+    document.querySelectorAll(".close-drawer").forEach(btn => {
+        btn.addEventListener("click", () => cartDrawer.classList.remove("active"));
+    });
+    
+    // Close cart when clicking outside drawer content
+    cartDrawer.addEventListener("click", (e) => {
+        if (e.target === cartDrawer) cartDrawer.classList.remove("active");
+    });
+    
+    // Product grid buttons event delegation (Details and Quick Add)
+    productsGrid.addEventListener("click", (e) => {
+        const id = parseInt(e.target.dataset.id);
+        if (!id) return;
+        
+        if (e.target.classList.contains("view-details-btn")) {
+            openProductDetails(id);
+        } else if (e.target.classList.contains("add-quick-btn")) {
+            const product = products.find(p => p.id === id);
+            const sizes = product && product.sizes ? product.sizes.split(",") : [];
+            const colors = product && product.colors ? product.colors.split(",") : [];
+            addToCart(id, sizes[0] || "", colors[0] || "");
+        }
+    });
+    
+    // Cart quantity adjust and remove delegates
+    cartItemsList.addEventListener("click", (e) => {
+        const target = e.target;
+        const id = parseInt(target.dataset.id);
+        if (!id) return;
+        
+        const size = target.dataset.size || "";
+        const color = target.dataset.color || "";
+        const item = cart.find(i => i.product_id === id && i.size === size && i.color === color);
+        if (!item) return;
+        
+        if (target.classList.contains("qty-plus")) {
+            updateCartQuantity(id, size, color, item.quantity + 1);
+        } else if (target.classList.contains("qty-minus")) {
+            updateCartQuantity(id, size, color, item.quantity - 1);
+        } else if (target.classList.contains("remove-cart-item")) {
+            removeFromCart(id, size, color);
+        }
+    });
+    
+    // Checkout controls
+    document.getElementById("checkout-trigger").addEventListener("click", openCheckout);
+    checkoutForm.addEventListener("submit", handleCheckoutSubmit);
+    
+    // Close modals
+    document.querySelectorAll(".close-modal, .modal-overlay").forEach(el => {
+        el.addEventListener("click", (e) => {
+            if (e.target.classList.contains("close-modal") || e.target.classList.contains("modal-overlay") || e.target.closest(".close-modal")) {
+                closeAllModals();
+            }
+        });
+    });
+    
+    // Success Close button
+    document.getElementById("success-close-btn").addEventListener("click", closeAllModals);
+}
+function resetFilters() {
+    priceSlider.value = 250;
+    maxPrice = 250;
+    priceLimitLabel.textContent = "Max: $250";
+    stockFilterCheckbox.checked = false;
+    inStockOnly = false;
+    sortSelect.value = "default";
+    sortBy = "default";
+    searchInput.value = "";
+    searchQuery = "";
+    activeCategory = "all";
+    document.querySelectorAll(".category-tab").forEach(t => {
+        if (t.dataset.category === "all") t.classList.add("active");
+        else t.classList.remove("active");
+    });
+    fetchProducts();
+    showToast("Filters reset successfully");
+}
+function closeAllModals() {
+    detailsModal.classList.remove("active");
+    checkoutModal.classList.remove("active");
+    successModal.classList.remove("active");
+}
+// Loader state
+function showLoader(show) {
+    if (show) {
+        loadingSpinner.classList.remove("hidden");
+        productsGrid.classList.add("hidden");
+    } else {
+        loadingSpinner.classList.add("hidden");
+        productsGrid.classList.remove("hidden");
+    }
+}
+// Toast alerts helper
+function showToast(message, type = "success") {
+    const toastContainer = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = `toast ${type === "danger" ? "toast-danger" : ""}`;
+    if (type === "danger") {
+        toast.style.borderLeftColor = "var(--danger)";
+    }
+    
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button class="toast-close">✕</button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Close button
+    toast.querySelector(".toast-close").onclick = () => toast.remove();
+    
+    // Auto removal
+    setTimeout(() => {
+        toast.style.animation = "slideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) reverse forwards";
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sportix - Premium Sports Equipment & Accessories Shop</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <span class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </span>
+                SPORTIX
+            </a>
+            <div class="search-bar">
+                <span class="search-icon">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </span>
+                <input type="text" id="product-search" placeholder="Search premium sports gear...">
+            </div>
+            <div class="nav-actions">
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
+                    <svg class="sun-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+                <button id="cart-btn" class="icon-btn cart-trigger" aria-label="Open Shopping Cart">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    <span id="cart-badge" class="badge">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <!-- Main Workspace -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <span class="hero-badge">NEW SEASON EQUIPMENT</span>
+                <h1>ELEVATE YOUR GAME TO THE APEX</h1>
+                <p>Equip yourself with elite accessories for Cricket, Football, Basketball, Tennis, and Fitness. Engineered for ultimate athletic performance.</p>
+                <button class="btn btn-primary scroll-to-shop">Explore Collection</button>
+            </div>
+            <div class="hero-graphic">
+                <div class="glow-sphere text-glow"></div>
+                <div class="sports-showcase-grid">
+                    <div class="showcase-card ball-glow-1">🏸</div>
+                    <div class="showcase-card ball-glow-2">🏏</div>
+                    <div class="showcase-card ball-glow-3">🏀</div>
+                    <div class="showcase-card ball-glow-4">⚽</div>
+                </div>
+            </div>
+        </section>
+        <!-- Shop Section -->
+        <section id="shop-section" class="shop-container">
+            <div class="shop-header">
+                <h2>Elite Equipment</h2>
+                <div class="sorting-controls">
+                    <label for="sort-select">Sort By:</label>
+                    <select id="sort-select">
+                        <option value="default">Featured</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="rating_desc">Highest Rated</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Categories Bar -->
+            <div class="categories-bar">
+                <button class="category-tab active" data-category="all">All Sports</button>
+                <button class="category-tab" data-category="Cricket">Cricket</button>
+                <button class="category-tab" data-category="Football">Football</button>
+                <button class="category-tab" data-category="Basketball">Basketball</button>
+                <button class="category-tab" data-category="Tennis">Tennis</button>
+                <button class="category-tab" data-category="Badminton">Badminton</button>
+                <button class="category-tab" data-category="Fitness & Gym">Fitness & Gym</button>
+                <button class="category-tab" data-category="Running">Running</button>
+            </div>
+            <div class="shop-layout">
+                <!-- Filters Sidebar -->
+                <aside class="filters-sidebar">
+                    <div class="filter-group">
+                        <h3>Price Range</h3>
+                        <div class="price-slider-container">
+                            <input type="range" id="price-range" min="0" max="250" value="250" class="slider">
+                            <div class="price-labels">
+                                <span>$0</span>
+                                <span id="price-limit">Max: $250</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <h3>Fast Shipping</h3>
+                        <label class="switch-container">
+                            <span>In Stock Only</span>
+                            <input type="checkbox" id="stock-filter">
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    <button id="reset-filters" class="btn btn-secondary btn-full">Reset Filters</button>
+                </aside>
+                <!-- Products Grid -->
+                <div class="products-grid-container">
+                    <div id="loading-spinner" class="spinner-container">
+                        <div class="spinner"></div>
+                        <p>Fetching elite equipment...</p>
+                    </div>
+                    <div id="no-products" class="no-products hidden">
+                        <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                        <p>No gear matches your current filters.</p>
+                        <button class="btn btn-secondary btn-sm" id="clear-filters-btn">Clear All Filters</button>
+                    </div>
+                    <div id="products-grid" class="products-grid">
+                        <!-- Rendered dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-brand">
+                <h3>SPORTIX</h3>
+                <p>Supplying high-end, state-of-the-art sports accessories and apparel since 2026. Elevate your athletic prowess.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Categories</h4>
+                <ul>
+                    <li><a href="#" class="category-link" data-category="Cricket">Cricket Equipment</a></li>
+                    <li><a href="#" class="category-link" data-category="Football">Football Gear</a></li>
+                    <li><a href="#" class="category-link" data-category="Basketball">Basketball Store</a></li>
+                    <li><a href="#" class="category-link" data-category="Fitness & Gym">Gym & Training</a></li>
+                </ul>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2026 Sportix. All rights reserved. Decoupled MySQL & FastAPI E-commerce Showcase.</p>
+            </div>
+        </div>
+    </footer>
+    <!-- Cart Drawer (Side Slide-Out) -->
+    <div id="cart-drawer" class="drawer-overlay">
+        <div class="drawer">
+            <div class="drawer-header">
+                <h3>Shopping Cart</h3>
+                <button class="close-drawer icon-btn" aria-label="Close Cart">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="drawer-content">
+                <div id="cart-empty" class="cart-empty">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                    <p>Your shopping cart is empty.</p>
+                    <button class="btn btn-primary btn-sm close-drawer">Continue Shopping</button>
+                </div>
+                <div id="cart-items-list" class="cart-items-list">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+            <div id="drawer-footer" class="drawer-footer hidden">
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal">$0.00</span>
+                </div>
+                <p class="shipping-info">Taxes and shipping calculated at checkout.</p>
+                <button id="checkout-trigger" class="btn btn-primary btn-full">Proceed to Checkout</button>
+            </div>
+        </div>
+    </div>
+    <!-- Product Details Modal -->
+    <div id="details-modal" class="modal-overlay">
+        <div class="modal card-glass">
+            <button class="close-modal icon-btn close-details" aria-label="Close details">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="details-layout" id="details-content">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="modal-overlay">
+        <div class="modal checkout-card card-glass">
+            <button class="close-modal icon-btn close-checkout" aria-label="Close checkout">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h3>Secure Checkout</h3>
+            <div class="checkout-layout">
+                <form id="checkout-form">
+                    <div class="form-group">
+                        <label for="checkout-name">Full Name</label>
+                        <input type="text" id="checkout-name" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="checkout-email">Email Address</label>
+                        <input type="email" id="checkout-email" required placeholder="johndoe@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="checkout-address">Shipping Address</label>
+                        <textarea id="checkout-address" required placeholder="123 Athletic Way, Sports City" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="checkout-card">Card Details (Simulated)</label>
+                            <input type="text" id="checkout-card" required placeholder="4111 2222 3333 4444">
+                        </div>
+                        <div class="form-group">
+                            <label for="checkout-expiry">Expiry</label>
+                            <input type="text" id="checkout-expiry" required placeholder="MM/YY">
+                        </div>
+                    </div>
+                    <button type="submit" id="submit-order-btn" class="btn btn-primary btn-full">Place Order</button>
+                </form>
+                <div class="order-summary-sidebar">
+                    <h4>Order Summary</h4>
+                    <div id="checkout-summary-items">
+                        <!-- Loaded dynamically -->
+                    </div>
+                    <hr>
+                    <div class="total-row font-bold">
+                        <span>Total Amount</span>
+                        <span id="checkout-summary-total">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal-overlay">
+        <div class="modal success-card card-glass text-center">
+            <div class="success-icon-wrap">
+                <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2>Order Placed!</h2>
+            <p>Your premium gear is being prepared for dispatch.</p>
+            <div class="success-details">
+                <p>Order ID: <strong id="success-order-id">#00000</strong></p>
+                <p>Total Charged: <strong id="success-order-total">$0.00</strong></p>
+                <p>Timestamp: <span id="success-order-time">Just now</span></p>
+            </div>
+            <button class="btn btn-primary" id="success-close-btn">Awesome, Continue Shopping</button>
+        </div>
+    </div>
+    <!-- Dynamic Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+    <script src="app.js"></script>
+</body>
+</html>
+/* Sportix Premium Styling */
+/* Core variables & Theme mappings */
+:root[data-theme="dark"] {
+    --bg-primary: #0a0f1d;
+    --bg-secondary: #121829;
+    --bg-tertiary: #192239;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #00ffaa;
+    --accent-rgb: 0, 255, 170;
+    --accent-secondary: #00e5ff;
+    --accent-secondary-rgb: 0, 229, 255;
+    --danger: #ff4a4a;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(0, 255, 170, 0.3);
+    --panel-glass: rgba(18, 24, 41, 0.8);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 15px rgba(0, 255, 170, 0.25);
+    --scrollbar-track: #0f1424;
+    --scrollbar-thumb: #1e294b;
+}
+:root[data-theme="light"] {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --accent: #0d9488;
+    --accent-rgb: 13, 148, 136;
+    --accent-secondary: #0284c7;
+    --accent-secondary-rgb: 2, 132, 199;
+    --danger: #ef4444;
+    --border: rgba(15, 23, 42, 0.08);
+    --border-hover: rgba(13, 148, 136, 0.3);
+    --panel-glass: rgba(255, 255, 255, 0.85);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 16px 48px rgba(15, 23, 42, 0.12);
+    --shadow-glow: 0 0 15px rgba(13, 148, 136, 0.15);
+    --scrollbar-track: #f1f5f9;
+    --scrollbar-thumb: #cbd5e1;
+}
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+/* Utilities / General elements */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+.text-center { text-align: center; }
+.font-bold { font-weight: 700; }
+.hidden { display: none !important; }
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    gap: 0.5rem;
+}
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+    color: #000;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.4);
+}
+.btn-primary:active {
+    transform: translateY(0);
+}
+.btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+    background-color: var(--border-hover);
+    border-color: var(--accent);
+}
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+.btn-full {
+    width: 100%;
+}
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.icon-btn:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--accent);
+}
+/* Glassmorphism card utility */
+.card-glass {
+    background: var(--panel-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+}
+/* Navbar */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(var(--bg-primary) == #0a0f1d ? 10 : 248, 15, 29, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+}
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+.logo {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--text-primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.logo-icon {
+    display: inline-flex;
+    color: var(--accent);
+}
+.search-bar {
+    flex: 1;
+    max-width: 500px;
+    position: relative;
+}
+.search-bar input {
+    width: 100%;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    border-radius: 20px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.25s ease;
+}
+.search-bar input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.15);
+    background-color: var(--bg-secondary);
+}
+.search-icon {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sun-icon { display: none; }
+[data-theme="light"] .sun-icon { display: block; }
+[data-theme="light"] .moon-icon { display: none; }
+[data-theme="dark"] .moon-icon { display: block; }
+.cart-trigger {
+    position: relative;
+}
+.badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: var(--accent);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-primary);
+}
+/* Hero Section */
+.hero {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: center;
+    gap: 3rem;
+}
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.hero-badge {
+    background-color: rgba(var(--accent-rgb), 0.12);
+    color: var(--accent);
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
+}
+.hero h1 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--text-primary) 60%, var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.hero p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    max-width: 550px;
+}
+.hero-graphic {
+    position: relative;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.glow-sphere {
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(var(--accent-rgb), 0.25) 0%, rgba(var(--accent-secondary-rgb), 0.05) 70%, transparent 100%);
+    filter: blur(20px);
+    z-index: 1;
+    animation: pulseGlow 6s infinite alternate;
+}
+.sports-showcase-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 320px;
+}
+.showcase-card {
+    height: 100px;
+    background: var(--panel-glass);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+.showcase-card:hover {
+    transform: translateY(-8px) scale(1.05);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-glow);
+}
+.ball-glow-1 { animation: floatAnim 4s infinite ease-in-out; }
+.ball-glow-2 { animation: floatAnim 4.5s infinite ease-in-out 0.5s; }
+.ball-glow-3 { animation: floatAnim 5s infinite ease-in-out 1s; }
+.ball-glow-4 { animation: floatAnim 3.8s infinite ease-in-out 0.2s; }
+/* Shop Section Layout */
+.shop-container {
+    max-width: 1200px;
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+    scroll-margin-top: 100px;
+}
+.shop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.shop-header h2 {
+    font-size: 2rem;
+    text-transform: uppercase;
+}
+.sorting-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sorting-controls select {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+}
+.sorting-controls select:focus {
+    border-color: var(--accent);
+}
+/* Categories Navigation */
+.categories-bar {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 2rem;
+    scrollbar-width: thin;
+}
+.categories-bar::-webkit-scrollbar {
+    height: 4px;
+}
+.category-tab {
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    padding: 0.6rem 1.2rem;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+.category-tab:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+.category-tab.active {
+    background-color: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+}
+.shop-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 2rem;
+}
+/* Filters Sidebar */
+.filters-sidebar {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+.filter-group h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+.price-slider-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg-tertiary);
+    outline: none;
+}
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+.slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+.price-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+.switch-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+.switch-container input {
+    display: none;
+}
+.switch-slider {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background-color: var(--bg-tertiary);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border);
+}
+.switch-slider::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-muted);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+.switch-container input:checked + .switch-slider {
+    background-color: var(--accent);
+}
+.switch-container input:checked + .switch-slider::before {
+    transform: translateX(20px);
+    background-color: #000;
+}
+/* Products Grid Container */
+.products-grid-container {
+    min-height: 400px;
+    position: relative;
+}
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+/* Spinner */
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 0;
+    gap: 1rem;
+    width: 100%;
+}
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--bg-tertiary);
+    border-top: 3px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+.no-products {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 0;
+    gap: 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+/* Product Card */
+.product-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.product-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-glow);
+}
+.badge-sale {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    z-index: 2;
+}
+.badge-outofstock {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: var(--danger);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    z-index: 2;
+}
+.product-img-wrap {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-tertiary);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+/* Beautiful placeholder SVG styling */
+.product-svg-icon {
+    font-size: 3.5rem;
+    filter: drop-shadow(0 0 10px rgba(var(--accent-rgb), 0.15));
+    transition: transform 0.4s ease;
+}
+.product-card:hover .product-svg-icon {
+    transform: scale(1.15) rotate(5deg);
+}
+.product-category {
+    font-size: 0.75rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+.product-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.6rem;
+    color: var(--text-primary);
+}
+.product-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+.star-icon {
+    color: #ffd700;
+}
+.product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+}
+.product-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+}
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+/* Cart Drawer Slider Overlay */
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+.drawer-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.drawer {
+    position: absolute;
+    top: 0;
+    right: -420px;
+    width: 100%;
+    max-width: 420px;
+    height: 100%;
+    background-color: var(--bg-secondary);
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.drawer-overlay.active .drawer {
+    right: 0;
+}
+.drawer-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.drawer-header h3 {
+    font-size: 1.3rem;
+}
+.drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+.cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-muted);
+    gap: 1.2rem;
+}
+.cart-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+.cart-item {
+    display: flex;
+    gap: 1rem;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    padding: 0.75rem;
+    border-radius: 12px;
+    align-items: center;
+}
+.cart-item-img {
+    width: 60px;
+    height: 60px;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+}
+.cart-item-details {
+    flex: 1;
+}
+.cart-item-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+.cart-item-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+}
+.cart-item-price {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.qty-controls {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background-color: var(--bg-secondary);
+    overflow: hidden;
+}
+.qty-btn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.qty-btn:hover {
+    background-color: var(--border-hover);
+    color: var(--accent);
+}
+.qty-val {
+    width: 26px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.drawer-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
+    background-color: var(--bg-tertiary);
+}
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+}
+.total-row span:last-child {
+    font-weight: 800;
+    color: var(--accent);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+}
+.shipping-info {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+}
+/* Modals Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    z-index: 1010;
+    opacity: 0;
+    visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.modal {
+    position: relative;
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 24px;
+    padding: 2.5rem;
+    transform: scale(0.9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-overlay.active .modal {
+    transform: scale(1);
+}
+.close-modal {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 10;
+}
+/* Details Modal Layout */
+.details-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 2.5rem;
+}
+.details-img-wrap {
+    background-color: var(--bg-tertiary);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 320px;
+    font-size: 6rem;
+    border: 1px solid var(--border);
+}
+.details-info-wrap {
+    display: flex;
+    flex-direction: column;
+}
+.details-category {
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.details-title {
+    font-size: 1.8rem;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+}
+.details-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+}
+.details-price {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+    font-family: 'Outfit', sans-serif;
+}
+.details-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+.option-group {
+    margin-bottom: 1.25rem;
+}
+.option-group h4 {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+.options-list {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.option-item {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.option-item:hover {
+    border-color: var(--accent);
+}
+.option-item.selected {
+    background-color: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+}
+.details-stock-status {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+.stock-badge-in {
+    color: var(--accent);
+    font-weight: 600;
+}
+.stock-badge-out {
+    color: var(--danger);
+    font-weight: 600;
+}
+/* Checkout Modal */
+.checkout-card {
+    max-width: 850px;
+}
+.checkout-card h3 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.75rem;
+}
+.checkout-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 2.5rem;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+}
+.form-group label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+.form-group input, .form-group textarea {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    outline: none;
+    width: 100%;
+}
+.form-group input:focus, .form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.15);
+}
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+}
+.order-summary-sidebar {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: fit-content;
+}
+.order-summary-sidebar h4 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+.summary-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 1.25rem;
+}
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+.summary-item span:first-child {
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.order-summary-sidebar hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1rem 0;
+}
+/* Success Modal */
+.success-card {
+    max-width: 460px;
+}
+.success-icon-wrap {
+    width: 64px;
+    height: 64px;
+    background-color: rgba(var(--accent-rgb), 0.12);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.2);
+}
+.success-card h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+.success-card p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+.success-details {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+.success-details p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+}
+.success-details p:last-child {
+    margin-bottom: 0;
+}
+.success-details strong {
+    color: var(--text-primary);
+}
+/* Toast Alerts */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 350px;
+}
+.toast {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    animation: slideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+.toast-close:hover {
+    color: var(--text-primary);
+}
+/* Footer styling */
+footer {
+    margin-top: auto;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    padding: 3rem 1.5rem;
+}
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 3rem;
+}
+.footer-brand h3 {
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    color: var(--accent);
+}
+.footer-brand p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 350px;
+}
+.footer-links h4 {
+    font-size: 1rem;
+    margin-bottom: 1.25rem;
+}
+.footer-links ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.footer-links a {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+}
+.footer-links a:hover {
+    color: var(--accent);
+}
+.footer-copyright {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+/* Animations Keyframes */
+@keyframes floatAnim {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+@keyframes slideIn {
+    0% { transform: translateX(120%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes pulseGlow {
+    0% { opacity: 0.6; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1.1); }
+}
+/* Responsiveness */
+@media (max-width: 992px) {
+    .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        margin: 1.5rem auto;
+        gap: 2rem;
+    }
+    .hero-content {
+        align-items: center;
+    }
+    .hero-graphic {
+        display: none;
+    }
+    .shop-layout {
+        grid-template-columns: 1fr;
+    }
+    .filters-sidebar {
+        position: static;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        align-items: center;
+    }
+    .filters-sidebar #reset-filters {
+        grid-column: 1 / -1;
+    }
+    .footer-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+@media (max-width: 768px) {
+    .details-layout, .checkout-layout {
+        grid-template-columns: 1fr;
+    }
+    .details-img-wrap {
+        height: 220px;
+        font-size: 4rem;
+    }
+    .navbar {
+        padding: 0.5rem 0;
+    }
+    .nav-container {
+        flex-wrap: wrap;
+    }
+    .search-bar {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 0.5rem;
+    }
+    .hero h1 {
+        font-size: 2.2rem;
+    }
+    .modal {
+        padding: 1.5rem;
+    }
+}
