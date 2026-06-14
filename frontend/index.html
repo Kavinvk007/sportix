@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -39,95 +39,602 @@
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                     <span id="cart-badge" class="badge">0</span>
                 </button>
+                
+                <!-- Profile Section -->
+                <div class="profile-nav-container" id="profile-nav-container">
+                    <button id="nav-signin-btn" class="btn btn-secondary btn-sm">Sign In</button>
+                    <div id="nav-profile-active" class="nav-profile-active hidden">
+                        <img id="nav-avatar" src="assets/images/user_avatar.png" alt="Avatar" class="nav-avatar">
+                        <span id="nav-username">Profile</span>
+                        <div class="profile-dropdown card-glass" id="profile-dropdown">
+                            <div class="dropdown-user-info">
+                                <h4 id="dropdown-full-name">Kavin Kumar</h4>
+                                <p id="dropdown-email">kavin@sportix.com</p>
+                            </div>
+                            <hr class="dropdown-divider">
+                            <button class="dropdown-item" data-tab="overview">📊 My Profile</button>
+                            <button class="dropdown-item" data-tab="wishlist">❤️ Wishlist</button>
+                            <button class="dropdown-item" data-tab="orders">📦 My Orders</button>
+                            <button class="dropdown-item" data-tab="addresses">📍 Address Book</button>
+                            <button class="dropdown-item" data-tab="payments">💳 Payment Methods</button>
+                            <button class="dropdown-item" data-tab="account">⚙️ Account Settings</button>
+                            <button class="dropdown-item" data-tab="notifications">🔔 Notification Settings</button>
+                            <button class="dropdown-item" data-tab="security">🛡️ Security Settings</button>
+                            <button class="dropdown-item" data-tab="support">💬 Help & Support</button>
+                            <hr class="dropdown-divider">
+                            <button id="logout-btn" class="dropdown-item logout-btn">🚪 Logout</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
     <!-- Main Workspace -->
     <main>
-        <!-- Hero Section -->
-        <section class="hero">
-            <div class="hero-content">
-                <span class="hero-badge">NEW SEASON EQUIPMENT</span>
-                <h1>ELEVATE YOUR GAME TO THE APEX</h1>
-                <p>Equip yourself with elite accessories for Cricket, Football, Basketball, Tennis, and Fitness. Engineered for ultimate athletic performance.</p>
-                <button class="btn btn-primary scroll-to-shop">Explore Collection</button>
-            </div>
-            <div class="hero-graphic">
-                <div class="glow-sphere text-glow"></div>
-                <div class="sports-showcase-grid">
-                    <div class="showcase-card ball-glow-1">🏸</div>
-                    <div class="showcase-card ball-glow-2">🏏</div>
-                    <div class="showcase-card ball-glow-3">🏀</div>
-                    <div class="showcase-card ball-glow-4">⚽</div>
+        <!-- Home View -->
+        <div id="home-view">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-content">
+                    <span class="hero-badge">NEW SEASON EQUIPMENT</span>
+                    <h1>ELEVATE YOUR GAME TO THE APEX</h1>
+                    <p>Equip yourself with elite accessories for Cricket, Football, Basketball, Tennis, and Fitness. Engineered for ultimate athletic performance.</p>
+                    <button class="btn btn-primary scroll-to-shop">Explore Collection</button>
                 </div>
-            </div>
-        </section>
-        <!-- Shop Section -->
-        <section id="shop-section" class="shop-container">
-            <div class="shop-header">
-                <h2>Elite Equipment</h2>
-                <div class="sorting-controls">
-                    <label for="sort-select">Sort By:</label>
-                    <select id="sort-select">
-                        <option value="default">Featured</option>
-                        <option value="price_asc">Price: Low to High</option>
-                        <option value="price_desc">Price: High to Low</option>
-                        <option value="rating_desc">Highest Rated</option>
-                    </select>
+                <div class="hero-graphic">
+                    <div class="glow-sphere text-glow"></div>
+                    <div class="sports-showcase-grid">
+                        <div class="showcase-card ball-glow-1">🏸</div>
+                        <div class="showcase-card ball-glow-2">🏏</div>
+                        <div class="showcase-card ball-glow-3">🏀</div>
+                        <div class="showcase-card ball-glow-4">⚽</div>
+                    </div>
                 </div>
-            </div>
-            <!-- Categories Bar -->
-            <div class="categories-bar">
-                <button class="category-tab active" data-category="all">All Sports</button>
-                <button class="category-tab" data-category="Cricket">Cricket</button>
-                <button class="category-tab" data-category="Football">Football</button>
-                <button class="category-tab" data-category="Basketball">Basketball</button>
-                <button class="category-tab" data-category="Tennis">Tennis</button>
-                <button class="category-tab" data-category="Badminton">Badminton</button>
-                <button class="category-tab" data-category="Fitness & Gym">Fitness & Gym</button>
-                <button class="category-tab" data-category="Running">Running</button>
-            </div>
-            <div class="shop-layout">
-                <!-- Filters Sidebar -->
-                <aside class="filters-sidebar">
-                    <div class="filter-group">
-                        <h3>Price Range</h3>
-                        <div class="price-slider-container">
-                            <input type="range" id="price-range" min="0" max="250" value="250" class="slider">
-                            <div class="price-labels">
-                                <span>$0</span>
-                                <span id="price-limit">Max: $250</span>
+            </section>
+            
+            <!-- Promotional Section -->
+            <section class="promo-section" style="margin: 2rem auto; max-width: 1400px; padding: 0 5%; display: flex; flex-direction: column; gap: 3rem;">
+                <!-- Hero Banner Carousel -->
+                <div class="promo-carousel card-glass" id="promo-carousel" style="position: relative; overflow: hidden; border-radius: 16px; min-height: 250px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                    <div class="carousel-inner" id="carousel-inner" style="display: flex; transition: transform 0.5s ease-in-out; width: 100%; height: 100%;">
+                        <div class="carousel-item" style="min-width: 100%; padding: 3rem 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, rgba(255, 62, 108, 0.2) 0%, rgba(10, 10, 15, 0) 100%);">
+                            <div class="carousel-content text-glow">
+                                <h2 style="font-size: 2.5rem; font-family: var(--font-heading); color: var(--text-primary); margin-bottom: 0.5rem; letter-spacing: 1px;">MASSIVE SPORTS SALE</h2>
+                                <p style="font-size: 1.1rem; color: var(--text-secondary);">Up to 50% Off on Premium Gear</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item" style="min-width: 100%; padding: 3rem 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(10, 10, 15, 0) 100%);">
+                            <div class="carousel-content text-glow">
+                                <h2 style="font-size: 2.5rem; font-family: var(--font-heading); color: var(--text-primary); margin-bottom: 0.5rem; letter-spacing: 1px;">NEW DISCOUNT CAMPAIGNS</h2>
+                                <p style="font-size: 1.1rem; color: var(--text-secondary);">Exclusive Deals on Top Brands</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item" style="min-width: 100%; padding: 3rem 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, rgba(162, 56, 255, 0.2) 0%, rgba(10, 10, 15, 0) 100%);">
+                            <div class="carousel-content text-glow">
+                                <h2 style="font-size: 2.5rem; font-family: var(--font-heading); color: var(--text-primary); margin-bottom: 0.5rem; letter-spacing: 1px;">ELEVATE YOUR PERFORMANCE</h2>
+                                <p style="font-size: 1.1rem; color: var(--text-secondary);">Upgrade Your Equipment Today</p>
                             </div>
                         </div>
                     </div>
-                    <div class="filter-group">
-                        <h3>Fast Shipping</h3>
-                        <label class="switch-container">
-                            <span>In Stock Only</span>
-                            <input type="checkbox" id="stock-filter">
-                            <span class="switch-slider"></span>
-                        </label>
+                    <div class="carousel-indicators" style="position: absolute; bottom: 1.5rem; display: flex; gap: 0.5rem; justify-content: center; width: 100%;">
+                        <span class="indicator active" data-slide="0" style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-secondary); cursor: pointer; transition: all 0.3s ease;"></span>
+                        <span class="indicator" data-slide="1" style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-secondary); cursor: pointer; transition: all 0.3s ease;"></span>
+                        <span class="indicator" data-slide="2" style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-secondary); cursor: pointer; transition: all 0.3s ease;"></span>
                     </div>
-                    <button id="reset-filters" class="btn btn-secondary btn-full">Reset Filters</button>
+                </div>
+
+                <!-- Promotional Cards -->
+                <div class="promo-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+                    <div class="promo-card card-glass" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+                        <div class="card-icon" style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));">⚽</div>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem;">Football Deals</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">Score Big Savings</p>
+                    </div>
+                    <div class="promo-card card-glass" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+                        <div class="card-icon" style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));">🏏</div>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem;">Cricket Deals</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">Hit It Out of the Park</p>
+                    </div>
+                    <div class="promo-card card-glass" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+                        <div class="card-icon" style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));">👟</div>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem;">Running Shoes</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">Step Up Your Pace</p>
+                    </div>
+                    <div class="promo-card card-glass" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+                        <div class="card-icon" style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));">🏋️‍♂️</div>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem;">Fitness Equipment</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">Build Your Home Gym</p>
+                    </div>
+                </div>
+
+                <div class="promo-bottom-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <!-- Coupon Section -->
+                    <div class="coupon-section card-glass" style="padding: 2rem; display: flex; flex-direction: column; justify-content: center;">
+                        <h3 class="section-title text-center" style="font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center;">Exclusive Offers</h3>
+                        <div class="coupon-grid" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="coupon-card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border: 1px dashed var(--accent); border-radius: 8px; background: rgba(255, 62, 108, 0.05);">
+                                <span class="coupon-code" style="font-weight: 700; color: var(--accent); letter-spacing: 1px; font-size: 1.1rem;">SPORTIX10</span>
+                                <span class="coupon-desc" style="font-size: 0.9rem; color: var(--text-secondary);">10% Off All Orders</span>
+                            </div>
+                            <div class="coupon-card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border: 1px dashed var(--accent); border-radius: 8px; background: rgba(255, 62, 108, 0.05);">
+                                <span class="coupon-code" style="font-weight: 700; color: var(--accent); letter-spacing: 1px; font-size: 1.1rem;">SPORTIX20</span>
+                                <span class="coupon-desc" style="font-size: 0.9rem; color: var(--text-secondary);">20% Off Orders > $150</span>
+                            </div>
+                            <div class="coupon-card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border: 1px dashed var(--accent); border-radius: 8px; background: rgba(255, 62, 108, 0.05);">
+                                <span class="coupon-code" style="font-weight: 700; color: var(--accent); letter-spacing: 1px; font-size: 1.1rem;">FREESHIP</span>
+                                <span class="coupon-desc" style="font-size: 0.9rem; color: var(--text-secondary);">Free Shipping Worldwide</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Today's Deals Section -->
+                    <div class="todays-deals-section card-glass" style="padding: 2rem; display: flex; flex-direction: column; position: relative; overflow: hidden;">
+                        <div class="deals-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3 class="section-title" style="font-size: 1.5rem; margin: 0;">Today's Flash Deals</h3>
+                            <div class="countdown-timer" id="flash-countdown" style="display: flex; gap: 0.5rem; align-items: center;">
+                                <div class="time-box" style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 6px; text-align: center; min-width: 45px;"><span id="cd-hours" style="font-weight: 700; font-size: 1.2rem; color: var(--text-primary); display: block;">00</span><small style="font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 1px;">HRS</small></div>
+                                <span class="time-sep" style="font-weight: 700; color: var(--text-secondary);">:</span>
+                                <div class="time-box" style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 6px; text-align: center; min-width: 45px;"><span id="cd-mins" style="font-weight: 700; font-size: 1.2rem; color: var(--text-primary); display: block;">00</span><small style="font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 1px;">MIN</small></div>
+                                <span class="time-sep" style="font-weight: 700; color: var(--text-secondary);">:</span>
+                                <div class="time-box" style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 6px; text-align: center; min-width: 45px;"><span id="cd-secs" style="font-weight: 700; font-size: 1.2rem; color: var(--accent); display: block;">00</span><small style="font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 1px;">SEC</small></div>
+                            </div>
+                        </div>
+                        <div class="deal-content" style="display: flex; align-items: center; gap: 2rem; flex: 1;">
+                            <div class="deal-info" style="flex: 1;">
+                                <div class="deal-badge" style="display: inline-block; background: var(--accent); color: #fff; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem;">-40% OFF</div>
+                                <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Pro Elite Tennis Racket</h4>
+                                <div class="price-block" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+                                    <span class="original-price" style="text-decoration: line-through; color: var(--text-muted); font-size: 1rem;">$250.00</span>
+                                    <span class="offer-price" style="font-size: 1.5rem; font-weight: 700; color: #00f0ff;">$150.00</span>
+                                </div>
+                                <button class="btn btn-primary btn-sm" style="padding: 0.75rem 1.5rem;">Grab Deal Now</button>
+                            </div>
+                            <div class="deal-image-ph" style="font-size: 6rem; filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.3)); animation: float 3s ease-in-out infinite;">🎾</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Shop Section -->
+            <section id="shop-section" class="shop-container">
+                <div class="shop-header">
+                    <h2>Elite Equipment</h2>
+                    <div class="sorting-controls">
+                        <label for="sort-select">Sort By:</label>
+                        <select id="sort-select">
+                            <option value="default">Featured</option>
+                            <option value="price_asc">Price: Low to High</option>
+                            <option value="price_desc">Price: High to Low</option>
+                            <option value="rating_desc">Highest Rated</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Categories Bar -->
+                <div class="categories-bar">
+                    <button class="category-tab active" data-category="all">All Sports</button>
+                    <button class="category-tab" data-category="Cricket">Cricket</button>
+                    <button class="category-tab" data-category="Football">Football</button>
+                    <button class="category-tab" data-category="Basketball">Basketball</button>
+                    <button class="category-tab" data-category="Tennis">Tennis</button>
+                    <button class="category-tab" data-category="Badminton">Badminton</button>
+                    <button class="category-tab" data-category="Fitness & Gym">Fitness & Gym</button>
+                    <button class="category-tab" data-category="Running">Running</button>
+                </div>
+                <div class="shop-layout">
+                    <!-- Filters Sidebar -->
+                    <aside class="filters-sidebar">
+                        <div class="filter-group">
+                            <h3>Price Range</h3>
+                            <div class="price-slider-container">
+                                <input type="range" id="price-range" min="0" max="250" value="250" class="slider">
+                                <div class="price-labels">
+                                    <span>$0</span>
+                                    <span id="price-limit">Max: $250</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <h3>Fast Shipping</h3>
+                            <label class="switch-container">
+                                <span>In Stock Only</span>
+                                <input type="checkbox" id="stock-filter">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                        <button id="reset-filters" class="btn btn-secondary btn-full">Reset Filters</button>
+                    </aside>
+                    <!-- Products Grid -->
+                    <div class="products-grid-container">
+                        <div id="loading-spinner" class="spinner-container">
+                            <div class="spinner"></div>
+                            <p>Fetching elite equipment...</p>
+                        </div>
+                        <div id="no-products" class="no-products hidden">
+                            <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                            <p>No gear matches your current filters.</p>
+                            <button class="btn btn-secondary btn-sm" id="clear-filters-btn">Clear All Filters</button>
+                        </div>
+                        <div id="products-grid" class="products-grid">
+                            <!-- Rendered dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Authentication View (Login/Register) -->
+        <div id="auth-view" class="auth-container view-section hidden">
+            <div class="auth-card card-glass">
+                <!-- Login Tab Content -->
+                <div id="login-form-container">
+                    <h2 class="auth-title">Welcome Back</h2>
+                    <p class="auth-subtitle">Login to access your profile, orders, and wishlist</p>
+                    <form id="login-form">
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                            <label for="login-email">Email Address</label>
+                            <input type="email" id="login-email" required placeholder="name@example.com" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        </div>
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1.5rem; text-align:left;">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required placeholder="Enter password" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                    </form>
+                    <p class="auth-switch-text" style="margin-top: 1rem; text-align: center; font-size: 0.9rem; color: var(--text-secondary);">New to Sportix? <a href="#" id="go-to-register" style="color: var(--accent); font-weight: 600;">Create an account</a></p>
+                </div>
+                <!-- Register Tab Content -->
+                <div id="register-form-container" class="hidden">
+                    <h2 class="auth-title">Create Account</h2>
+                    <p class="auth-subtitle">Join Sportix to track orders and save your gear</p>
+                    <form id="register-form">
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                            <label for="register-name">Full Name</label>
+                            <input type="text" id="register-name" required placeholder="John Doe" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        </div>
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                            <label for="register-email">Email Address</label>
+                            <input type="email" id="register-email" required placeholder="name@example.com" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        </div>
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                            <label for="register-phone">Phone Number (Optional)</label>
+                            <input type="tel" id="register-phone" placeholder="123-456-7890" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        </div>
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1.5rem; text-align:left;">
+                            <label for="register-password">Password</label>
+                            <input type="password" id="register-password" required placeholder="Min 6 characters" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                    </form>
+                    <p class="auth-switch-text" style="margin-top: 1rem; text-align: center; font-size: 0.9rem; color: var(--text-secondary);">Already have an account? <a href="#" id="go-to-login" style="color: var(--accent); font-weight: 600;">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Dashboard View -->
+        <div id="dashboard-view" class="dashboard-container view-section hidden">
+            <div class="dashboard-layout">
+                <!-- Sidebar Navigation -->
+                <aside class="dashboard-sidebar card-glass">
+                    <div class="sidebar-user-info">
+                        <div class="dashboard-avatar-wrap">
+                            <img id="dashboard-avatar" src="assets/images/user_avatar.png" alt="Profile avatar" class="dashboard-avatar-img">
+                        </div>
+                        <h3 id="dashboard-user-name">Kavin Kumar</h3>
+                        <p id="dashboard-user-email">kavin@sportix.com</p>
+                        <p class="member-since-lbl">Member since: <span id="dashboard-user-since">-</span></p>
+                    </div>
+                    <nav class="dashboard-nav">
+                        <button class="dash-tab-btn active" data-tab="overview">📊 Profile Overview</button>
+                        <button class="dash-tab-btn" data-tab="personal">👤 Personal Details</button>
+                        <button class="dash-tab-btn" data-tab="wishlist">❤️ My Wishlist</button>
+                        <button class="dash-tab-btn" data-tab="orders">📦 Order History</button>
+                        <button class="dash-tab-btn" data-tab="addresses">📍 Saved Addresses</button>
+                        <button class="dash-tab-btn" data-tab="payments">💳 Saved Payments</button>
+                        <button class="dash-tab-btn" data-tab="security">🛡️ Security & Sessions</button>
+                        <button class="dash-tab-btn" data-tab="preferences">⚙️ Preferences</button>
+                        <button class="dash-tab-btn" data-tab="support">💬 Help & Support</button>
+                    </nav>
                 </aside>
-                <!-- Products Grid -->
-                <div class="products-grid-container">
-                    <div id="loading-spinner" class="spinner-container">
-                        <div class="spinner"></div>
-                        <p>Fetching elite equipment...</p>
+                
+                <!-- Main Content Pane -->
+                <div class="dashboard-content card-glass">
+                    <!-- Tab: Overview -->
+                    <div class="dash-tab-panel" id="pane-overview">
+                        <h2 class="panel-title">Dashboard Overview</h2>
+                        <div class="overview-grid">
+                            <div class="overview-card info-card">
+                                <h3>Active Wishlist</h3>
+                                <p class="stat-number" id="stat-wishlist-count">0</p>
+                                <span class="stat-lbl">items saved</span>
+                                <button class="btn btn-secondary btn-sm pane-jump-btn" data-tab="wishlist">Go to Wishlist</button>
+                            </div>
+                            <div class="overview-card info-card">
+                                <h3>Total Orders</h3>
+                                <p class="stat-number" id="stat-orders-count">0</p>
+                                <span class="stat-lbl">purchases made</span>
+                                <button class="btn btn-secondary btn-sm pane-jump-btn" data-tab="orders">Go to Orders</button>
+                            </div>
+                            <div class="overview-card info-card">
+                                <h3>Default Address</h3>
+                                <p class="stat-summary" id="stat-default-address">No default address saved.</p>
+                                <button class="btn btn-secondary btn-sm pane-jump-btn" data-tab="addresses">Manage Addresses</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Notifications -->
+                        <div class="dashboard-section" style="margin-top: 2rem;">
+                            <h3>Recent Notifications</h3>
+                            <div id="notifications-list" class="notifications-list">
+                                <p class="text-muted">No new notifications.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div id="no-products" class="no-products hidden">
-                        <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                        <p>No gear matches your current filters.</p>
-                        <button class="btn btn-secondary btn-sm" id="clear-filters-btn">Clear All Filters</button>
+                    
+                    <!-- Tab: Personal Details -->
+                    <div class="dash-tab-panel hidden" id="pane-personal">
+                        <h2 class="panel-title">Personal Information</h2>
+                        <form id="profile-update-form" class="panel-form">
+                            <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                <label for="profile-name">Full Name</label>
+                                <input type="text" id="profile-name" required placeholder="John Doe" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                            </div>
+                            <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                <label for="profile-email">Email Address</label>
+                                <input type="email" id="profile-email" required placeholder="name@example.com" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                            </div>
+                            <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1.5rem; text-align:left;">
+                                <label for="profile-phone">Phone Number</label>
+                                <input type="tel" id="profile-phone" placeholder="123-456-7890" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Profile Details</button>
+                        </form>
                     </div>
-                    <div id="products-grid" class="products-grid">
-                        <!-- Rendered dynamically via JS -->
+                    
+                    <!-- Tab: Wishlist -->
+                    <div class="dash-tab-panel hidden" id="pane-wishlist">
+                        <h2 class="panel-title">My Wishlist</h2>
+                        <div id="wishlist-grid" class="wishlist-grid">
+                            <p class="text-muted">Your wishlist is empty. Explore products and tap the heart icon to save gear!</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Orders -->
+                    <div class="dash-tab-panel hidden" id="pane-orders">
+                        <h2 class="panel-title">My Orders</h2>
+                        <div id="orders-list-container" class="orders-list-container">
+                            <p class="text-muted">No orders found. Once you place an order, it will appear here permanently.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Address Book -->
+                    <div class="dash-tab-panel hidden" id="pane-addresses">
+                        <div class="panel-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h2 class="panel-title" style="margin-bottom:0;">Address Book</h2>
+                            <button id="add-address-btn" class="btn btn-primary btn-sm">➕ Add New Address</button>
+                        </div>
+                        <div id="addresses-grid" class="addresses-grid">
+                            <!-- Rendered dynamically -->
+                        </div>
+                        <!-- Address Form Container -->
+                        <div id="address-form-modal" class="address-form-modal hidden card-glass" style="margin-top: 2rem; padding: 1.5rem; border-radius: 12px;">
+                            <h3 id="address-form-title" style="margin-bottom: 1rem;">Add New Address</h3>
+                            <form id="address-form">
+                                <input type="hidden" id="address-id">
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                    <label for="address-label">Label (e.g. Home, Work)</label>
+                                    <input type="text" id="address-label" required placeholder="Home" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                    <label for="address-fullname">Receiver's Full Name</label>
+                                    <input type="text" id="address-fullname" required placeholder="John Doe" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                    <label for="address-line">Address Line</label>
+                                    <textarea id="address-line" required placeholder="123 Athletic St" rows="2" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;"></textarea>
+                                </div>
+                                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                        <label for="address-city">City</label>
+                                        <input type="text" id="address-city" required placeholder="Boston" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                        <label for="address-state">State</label>
+                                        <input type="text" id="address-state" required placeholder="MA" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                </div>
+                                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                        <label for="address-zip">Zip Code</label>
+                                        <input type="text" id="address-zip" required placeholder="02108" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                        <label for="address-country">Country</label>
+                                        <input type="text" id="address-country" placeholder="United States" value="United States" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                </div>
+                                <div class="form-group checkbox-group" style="display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0;">
+                                    <input type="checkbox" id="address-default">
+                                    <label for="address-default">Set as default shipping address</label>
+                                </div>
+                                <div class="card-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                    <button type="button" id="cancel-address-btn" class="btn btn-secondary">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Address</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Saved Payments -->
+                    <div class="dash-tab-panel hidden" id="pane-payments">
+                        <h2 class="panel-title">Saved Payment Methods</h2>
+                        <div class="payments-dashboard-layout">
+                            <div class="saved-cards-section">
+                                <h3>Saved Cards (Simulated)</h3>
+                                <div id="saved-cards-list" class="saved-cards-list">
+                                    <!-- Dynamic -->
+                                </div>
+                                <button id="add-card-btn" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">➕ Add Simulated Card</button>
+                            </div>
+                            <hr style="margin: 1.5rem 0; border: 1px solid var(--border);">
+                            <div class="saved-upi-section">
+                                <h3>UPI Accounts (Simulated)</h3>
+                                <div id="saved-upi-list" class="saved-upi-list">
+                                    <!-- Dynamic -->
+                                </div>
+                                <button id="add-upi-btn" class="btn btn-secondary btn-sm" style="margin-top: 1rem;">➕ Add Simulated UPI ID</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Card Add Form Overlay -->
+                        <div id="card-form-modal" class="address-form-modal hidden card-glass" style="margin-top: 2rem; padding: 1.5rem; border-radius: 12px;">
+                            <h3>Add Simulated Card</h3>
+                            <form id="card-form">
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                    <label for="card-holder">Cardholder Name</label>
+                                    <input type="text" id="card-holder" required placeholder="John Doe" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                    <label for="card-num">Card Number</label>
+                                    <input type="text" id="card-num" required placeholder="4111 2222 3333 4444" maxlength="19" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                        <label for="card-exp">Expiry</label>
+                                        <input type="text" id="card-exp" required placeholder="MM/YY" maxlength="5" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                        <label for="card-cvv">CVV</label>
+                                        <input type="password" id="card-cvv" required placeholder="123" maxlength="3" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                </div>
+                                <div class="card-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                    <button type="button" id="cancel-card-btn" class="btn btn-secondary">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Card</button>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- UPI Add Form Overlay -->
+                        <div id="upi-form-modal" class="address-form-modal hidden card-glass" style="margin-top: 2rem; padding: 1.5rem; border-radius: 12px;">
+                            <h3>Add Simulated UPI Account</h3>
+                            <form id="upi-form">
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                    <label for="upi-vpa">UPI ID (VPA)</label>
+                                    <input type="text" id="upi-vpa" required placeholder="kavin@okaxis" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                    <label for="upi-name">Account Holder Name</label>
+                                    <input type="text" id="upi-name" required placeholder="Kavin Kumar" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                                <div class="card-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                    <button type="button" id="cancel-upi-btn" class="btn btn-secondary">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Account</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Security -->
+                    <div class="dash-tab-panel hidden" id="pane-security">
+                        <h2 class="panel-title">Security Settings</h2>
+                        <div class="security-sections">
+                            <div class="change-pw-section">
+                                <h3>Update Password</h3>
+                                <form id="change-password-form" class="panel-form">
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1rem; text-align:left;">
+                                        <label for="old-password">Current Password</label>
+                                        <input type="password" id="old-password" required placeholder="••••••••" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; margin-bottom:1.5rem; text-align:left;">
+                                        <label for="new-password">New Password</label>
+                                        <input type="password" id="new-password" required placeholder="Min 6 characters" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Change Password</button>
+                                </form>
+                            </div>
+                            <hr style="margin: 2rem 0; border: 1px solid var(--border);">
+                            <div class="sessions-section">
+                                <h3>Active Sessions & Activity</h3>
+                                <div class="active-sessions-list" id="active-sessions-list" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+                                    <!-- Simulated active sessions list -->
+                                </div>
+                                <h3 style="margin-top: 2rem;">Recent Security Activity</h3>
+                                <div class="security-log" id="security-activity-log" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+                                    <!-- Simulated log dates -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Preferences -->
+                    <div class="dash-tab-panel hidden" id="pane-preferences">
+                        <h2 class="panel-title">Preferences Settings</h2>
+                        <div class="pref-options" style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
+                            <div class="pref-option-item" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                                <div>
+                                    <h3 style="font-size: 1.1rem; font-weight:600;">Dark Theme Settings</h3>
+                                    <p class="text-muted" style="font-size: 0.85rem;">Set default website view to dark/light color scheme</p>
+                                </div>
+                                <label class="switch-container">
+                                    <span>Dark Theme Mode</span>
+                                    <input type="checkbox" id="pref-theme-checkbox" checked>
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="pref-option-item" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                                <div>
+                                    <h3 style="font-size: 1.1rem; font-weight:600;">Order Notifications</h3>
+                                    <p class="text-muted" style="font-size: 0.85rem;">Receive tracking and invoice updates via notifications</p>
+                                </div>
+                                <label class="switch-container">
+                                    <span>Enabled</span>
+                                    <input type="checkbox" id="pref-notify-orders" checked>
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="pref-option-item" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem;">
+                                <div>
+                                    <h3 style="font-size: 1.1rem; font-weight:600;">Special Offers</h3>
+                                    <p class="text-muted" style="font-size: 0.85rem;">Receive marketing newsletters about discount coupons</p>
+                                </div>
+                                <label class="switch-container">
+                                    <span>Enabled</span>
+                                    <input type="checkbox" id="pref-notify-offers">
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Help & Support -->
+                    <div class="dash-tab-panel hidden" id="pane-support">
+                        <h2 class="panel-title">Help & Support</h2>
+                        <p class="text-muted">Have queries about orders or shipping? Contact our 24/7 client service.</p>
+                        <div class="support-contact-cards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                            <div class="support-card info-card" style="padding: 1.25rem; border-radius: 12px; background: var(--bg-secondary); border: 1px solid var(--border);">
+                                <h4 style="font-size:1.1rem; margin-bottom: 0.5rem;">📧 Email Support</h4>
+                                <p style="color: var(--accent); font-weight: 600;">support@sportix.com</p>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Response time &lt; 4 hours</span>
+                            </div>
+                            <div class="support-card info-card" style="padding: 1.25rem; border-radius: 12px; background: var(--bg-secondary); border: 1px solid var(--border);">
+                                <h4 style="font-size:1.1rem; margin-bottom: 0.5rem;">📞 Toll-Free Helpline</h4>
+                                <p style="color: var(--accent); font-weight: 600;">1-800-456-SPORTIX</p>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Mon - Sat: 9 AM - 6 PM</span>
+                            </div>
+                        </div>
+                        <div class="support-faq" style="margin-top: 2.5rem;">
+                            <h3 style="margin-bottom: 1rem;">Frequently Asked Questions</h3>
+                            <details class="faq-details" style="padding: 1rem 0; border-bottom: 1px solid var(--border); cursor: pointer;">
+                                <summary style="font-weight: 600;">How long does delivery take?</summary>
+                                <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">Orders are shipped within 24 hours. Standard delivery takes 3-5 business days.</p>
+                            </details>
+                            <details class="faq-details" style="padding: 1rem 0; border-bottom: 1px solid var(--border); cursor: pointer;">
+                                <summary style="font-weight: 600;">What is the refund policy?</summary>
+                                <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">We offer a 30-day return and refund policy on unused gear in original packaging.</p>
+                            </details>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
-    </main>
+        </div>
     <!-- Footer -->
     <footer>
         <div class="footer-container">
