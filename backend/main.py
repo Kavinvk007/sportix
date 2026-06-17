@@ -117,6 +117,14 @@ def get_current_user_optional(authorization: Optional[str] = Header(None), token
     user_id = payload.get("user_id")
     return db.query(models.User).filter(models.User.id == user_id).first()
 
+def get_current_admin_user(user: models.User = Depends(get_current_user)) -> models.User:
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User does not have admin privileges"
+        )
+    return user
+
 # Pydantic Schemas for validation
 class ProductResponse(BaseModel):
     id: int
@@ -143,6 +151,11 @@ class CheckoutInput(BaseModel):
     items: List[CartItemInput]
     payment_method: Optional[str] = "Credit Card"
     card_number: Optional[str] = None
+    coupon_code: Optional[str] = None
+
+class CouponInput(BaseModel):
+    code: str
+    discount_percentage: float
 
 class OrderItemResponse(BaseModel):
     id: int
@@ -161,6 +174,43 @@ class OrderResponse(BaseModel):
     created_at: str
     class Config:
         from_attributes = True
+
+class ReviewInput(BaseModel):
+    rating: int
+    comment: Optional[str] = None
+
+class ReviewResponse(BaseModel):
+    id: int
+    product_id: int
+    user_id: int
+    user_name: Optional[str] = None
+    rating: int
+    comment: Optional[str] = None
+    created_at: str
+    class Config:
+        from_attributes = True
+
+class OrderEventInput(BaseModel):
+    status: str
+    description: Optional[str] = None
+
+class OrderEventResponse(BaseModel):
+    id: int
+    status: str
+    description: Optional[str] = None
+    created_at: str
+    class Config:
+        from_attributes = True
+
+class ProductInput(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price: float
+    category: str
+    image_url: Optional[str] = None
+    sizes: Optional[str] = None
+    colors: Optional[str] = None
+    stock: int
 
 # Auth Schemas
 class RegisterInput(BaseModel):
@@ -279,6 +329,7 @@ def checkout(order_data: CheckoutInput, db: Session = Depends(get_db), user: Opt
         )
     # Verify products and calculate total price
     total_price = 0.0
+    subtotal = 0.0
     items_to_create = []
     for item in order_data.items:
         product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
@@ -296,6 +347,7 @@ def checkout(order_data: CheckoutInput, db: Session = Depends(get_db), user: Opt
         product.stock -= item.quantity
         
         item_total = product.price * item.quantity
+        subtotal += item_total
         total_price += item_total
         
         # Prepare OrderItem
@@ -315,12 +367,22 @@ def checkout(order_data: CheckoutInput, db: Session = Depends(get_db), user: Opt
         else:
             card_last4 = clean_card
             
+    discount_amount = 0.0
+    if order_data.coupon_code:
+        coupon = db.query(models.Coupon).filter(models.Coupon.code == order_data.coupon_code, models.Coupon.is_active == True).first()
+        if coupon:
+            discount_amount = (subtotal * coupon.discount_percentage) / 100
+            total_price -= discount_amount
+            
     # Create the Order
     new_order = models.Order(
         customer_name=order_data.customer_name,
         email=order_data.email,
         address=order_data.address,
         total_price=round(total_price, 2),
+        subtotal=round(subtotal, 2),
+        discount_amount=round(discount_amount, 2),
+        coupon_code=order_data.coupon_code,
         items=items_to_create,
         user_id=user.id if user else None,
         payment_method=order_data.payment_method or "Credit Card",
@@ -1054,3 +1116,311 @@ def mark_all_read(user: models.User = Depends(get_current_user), db: Session = D
     ).update({"is_read": True})
     db.commit()
     return {"success": True, "message": "All notifications marked as read"}
+
+# ========================================
+# ========================================
+# ADMIN ENDPOINTS
+# ========================================
+
+@app.get("/api/admin/dashboard")
+def admin_get_dashboard(admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    total_products = db.query(models.Product).count()
+    total_orders = db.query(models.Order).count()
+    total_users = db.query(models.User).filter(models.User.is_admin == False).count()
+    
+    orders = db.query(models.Order).all()
+    total_revenue = sum([o.total_price for o in orders if o.payment_status == "Paid"])
+    pending_orders = len([o for o in orders if o.order_status == "Pending"])
+    delivered_orders = len([o for o in orders if o.order_status == "Delivered"])
+    
+    # Recent Activities (e.g., 5 most recent orders)
+    recent_orders = sorted(orders, key=lambda x: x.created_at, reverse=True)[:5]
+    activities = [{"message": f"New order #{o.id} placed by {o.customer_name} for ${o.total_price}", "time": o.created_at.strftime("%Y-%m-%d %H:%M")} for o in recent_orders]
+    
+    return {
+        "metrics": {
+            "total_products": total_products,
+            "total_orders": total_orders,
+            "total_users": total_users,
+            "total_revenue": round(total_revenue, 2),
+            "pending_orders": pending_orders,
+            "delivered_orders": delivered_orders
+        },
+        "recent_activities": activities
+    }
+
+
+@app.get("/api/admin/users")
+def admin_get_users(admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
+    return [{"id": u.id, "email": u.email, "full_name": u.full_name, "is_admin": u.is_admin, "member_since": u.member_since.strftime("%Y-%m-%d")} for u in users]
+
+@app.get("/api/admin/orders")
+def admin_get_orders(admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    orders = db.query(models.Order).order_by(models.Order.created_at.desc()).all()
+    return [{
+        "order_id": o.id,
+        "customer_name": o.customer_name,
+        "email": o.email,
+        "total_price": o.total_price,
+        "order_status": o.order_status,
+        "created_at": o.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    } for o in orders]
+
+@app.put("/api/admin/orders/{order_id}")
+def admin_update_order(order_id: int, status_update: dict, admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    new_status = status_update.get("order_status")
+    if new_status:
+        order.order_status = new_status
+        # Add order event
+        event = models.OrderEvent(order_id=order.id, status=new_status, description=f"Order status updated to {new_status}")
+        db.add(event)
+        
+        # Notify user
+        if order.user_id:
+            notif = models.Notification(user_id=order.user_id, title="Order Status Update", message=f"Your order #{order.id} is now {new_status}.")
+            db.add(notif)
+            
+        db.commit()
+    return {"success": True, "message": "Order updated successfully"}
+
+@app.post("/api/admin/products")
+def admin_add_product(product: ProductInput, admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    new_product = models.Product(**product.dict())
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+    return {"success": True, "product_id": new_product.id}
+
+@app.put("/api/admin/products/{product_id}")
+def admin_update_product(product_id: int, product_data: ProductInput, admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    for key, value in product_data.dict().items():
+        setattr(product, key, value)
+        
+    db.commit()
+    return {"success": True, "message": "Product updated"}
+
+@app.delete("/api/admin/products/{product_id}")
+def admin_delete_product(product_id: int, admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    db.delete(product)
+    db.commit()
+    return {"success": True, "message": "Product deleted"}
+
+@app.delete("/api/admin/users/{user_id}")
+def admin_delete_user(user_id: int, admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    if user_id == admin.id:
+        raise HTTPException(status_code=400, detail="Cannot delete yourself")
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db.delete(user)
+    db.commit()
+    return {"success": True, "message": "User deleted"}
+
+@app.get("/api/admin/reviews")
+def admin_get_reviews(admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    reviews = db.query(models.Review).order_by(models.Review.created_at.desc()).all()
+    return [{
+        "id": r.id,
+        "product_id": r.product_id,
+        "user_id": r.user_id,
+        "user_name": r.user.full_name if r.user else "Anonymous",
+        "product_name": r.product.name if r.product else "Unknown",
+        "rating": r.rating,
+        "comment": r.comment,
+        "created_at": r.created_at.strftime("%Y-%m-%d %H:%M")
+    } for r in reviews]
+
+@app.delete("/api/admin/reviews/{review_id}")
+def admin_delete_review(review_id: int, admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    review = db.query(models.Review).filter(models.Review.id == review_id).first()
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    db.delete(review)
+    db.commit()
+    return {"success": True, "message": "Review deleted"}
+
+# ========================================
+# REVIEW ENDPOINTS
+# ========================================
+
+@app.get("/api/products/{product_id}/reviews", response_model=List[ReviewResponse])
+def get_product_reviews(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    reviews = db.query(models.Review).filter(models.Review.product_id == product_id).order_by(models.Review.created_at.desc()).all()
+    result = []
+    for r in reviews:
+        result.append({
+            "id": r.id,
+            "product_id": r.product_id,
+            "user_id": r.user_id,
+            "user_name": r.user.full_name if r.user else "Anonymous",
+            "rating": r.rating,
+            "comment": r.comment,
+            "created_at": r.created_at.strftime("%Y-%m-%d")
+        })
+    return result
+
+@app.post("/api/products/{product_id}/reviews")
+def add_product_review(product_id: int, review: ReviewInput, user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Check if user already reviewed
+    existing = db.query(models.Review).filter(models.Review.product_id == product_id, models.Review.user_id == user.id).first()
+    if existing:
+        existing.rating = review.rating
+        existing.comment = review.comment
+    else:
+        new_review = models.Review(product_id=product_id, user_id=user.id, rating=review.rating, comment=review.comment)
+        db.add(new_review)
+        
+    db.commit()
+    
+    # Update product average rating
+    all_reviews = db.query(models.Review).filter(models.Review.product_id == product_id).all()
+    avg_rating = sum(r.rating for r in all_reviews) / len(all_reviews) if all_reviews else 0.0
+    product.rating = round(avg_rating, 1)
+    db.commit()
+    
+    return {"success": True, "message": "Review added successfully"}
+
+# ========================================
+# ORDER EVENTS ENDPOINTS
+# ========================================
+
+@app.get("/api/orders/{order_id}/track")
+def track_order(order_id: int, user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.user_id != user.id and not user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to view this order's events")
+        
+    events = db.query(models.OrderEvent).filter(models.OrderEvent.order_id == order_id).order_by(models.OrderEvent.created_at.asc()).all()
+    
+    stages = ["Pending", "Processing", "Shipped", "Out For Delivery", "Delivered"]
+    frontend_events = []
+    
+    if order.order_status == "Cancelled":
+        frontend_events.append({"status": "Cancelled", "desc": "Order was cancelled", "time": order.created_at.strftime("%Y-%m-%d %H:%M"), "completed": True})
+    else:
+        for stage in stages:
+            ev = next((e for e in events if e.status == stage), None)
+            if ev:
+                frontend_events.append({
+                    "status": stage,
+                    "desc": ev.description or f"Order {stage}",
+                    "time": ev.created_at.strftime("%Y-%m-%d %H:%M"),
+                    "completed": True
+                })
+            else:
+                frontend_events.append({
+                    "status": stage,
+                    "desc": "Pending updates...",
+                    "time": "--",
+                    "completed": False
+                })
+                
+    return {
+        "order_id": order.id,
+        "current_status": order.order_status,
+        "events": frontend_events
+    }
+
+import io
+from fastapi.responses import StreamingResponse
+
+@app.get("/api/admin/coupons")
+def admin_get_coupons(admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    coupons = db.query(models.Coupon).all()
+    return [{"id": c.id, "code": c.code, "discount_percentage": c.discount_percentage, "is_active": c.is_active} for c in coupons]
+
+@app.post("/api/admin/coupons")
+def admin_add_coupon(coupon: CouponInput, admin: models.User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
+    existing = db.query(models.Coupon).filter(models.Coupon.code == coupon.code).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Coupon code already exists")
+    new_coupon = models.Coupon(code=coupon.code, discount_percentage=coupon.discount_percentage)
+    db.add(new_coupon)
+    db.commit()
+    return {"success": True, "message": "Coupon created"}
+
+@app.post("/api/cart/apply-coupon")
+def apply_coupon(coupon_data: dict, db: Session = Depends(get_db)):
+    code = coupon_data.get("code")
+    coupon = db.query(models.Coupon).filter(models.Coupon.code == code, models.Coupon.is_active == True).first()
+    if not coupon:
+        raise HTTPException(status_code=404, detail="Invalid or expired coupon code")
+    return {"success": True, "discount_percentage": coupon.discount_percentage}
+
+@app.get("/api/orders/{order_id}/invoice")
+def get_order_invoice(order_id: int, user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.user_id != user.id and not user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to download this invoice")
+
+    from fpdf import FPDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=12)
+
+    # Header
+    pdf.set_font("Helvetica", style="B", size=20)
+    pdf.cell(200, 10, txt="SPORTIX INVOICE", ln=True, align='C')
+    pdf.ln(10)
+
+    # Order Details
+    pdf.set_font("Helvetica", size=12)
+    pdf.cell(100, 10, txt=f"Order ID: #{order.id}", ln=False)
+    pdf.cell(100, 10, txt=f"Date: {order.created_at.strftime('%Y-%m-%d %H:%M')}", ln=True)
+    pdf.cell(100, 10, txt=f"Customer Name: {order.customer_name}", ln=True)
+    pdf.cell(100, 10, txt=f"Billing Address: {order.address}", ln=True)
+    pdf.cell(100, 10, txt=f"Payment Method: {order.payment_method} ({order.payment_status})", ln=True)
+    pdf.ln(10)
+
+    # Table Header
+    pdf.set_font("Helvetica", style="B", size=12)
+    pdf.cell(90, 10, "Product", 1)
+    pdf.cell(30, 10, "Qty", 1)
+    pdf.cell(35, 10, "Unit Price", 1)
+    pdf.cell(35, 10, "Total", 1)
+    pdf.ln()
+
+    # Table Body
+    pdf.set_font("Helvetica", size=12)
+    for item in order.items:
+        pdf.cell(90, 10, item.product.name[:30] if item.product else f"Product {item.product_id}", 1)
+        pdf.cell(30, 10, str(item.quantity), 1)
+        pdf.cell(35, 10, f"${item.price:.2f}", 1)
+        pdf.cell(35, 10, f"${(item.price * item.quantity):.2f}", 1)
+        pdf.ln()
+
+    # Summary
+    pdf.ln(5)
+    pdf.set_font("Helvetica", style="B", size=12)
+    pdf.cell(150, 10, "Subtotal", 0, 0, 'R')
+    pdf.cell(40, 10, f"${order.subtotal:.2f}", 0, 1, 'R')
+    if order.discount_amount > 0:
+        pdf.cell(150, 10, f"Discount ({order.coupon_code})", 0, 0, 'R')
+        pdf.cell(40, 10, f"-${order.discount_amount:.2f}", 0, 1, 'R')
+    pdf.cell(150, 10, "Total Amount", 0, 0, 'R')
+    pdf.cell(40, 10, f"${order.total_price:.2f}", 0, 1, 'R')
+
+    pdf_bytes = bytes(pdf.output())
+    return StreamingResponse(io.BytesIO(pdf_bytes), media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=invoice_{order.id}.pdf"})

@@ -12,6 +12,7 @@ class User(Base):
     phone_number = Column(String(20), nullable=True)
     profile_picture = Column(String(255), nullable=True)
     member_since = Column(DateTime, default=datetime.datetime.utcnow)
+    is_admin = Column(Boolean, default=False)
     
     # Relationships
     wishlist = relationship("WishlistItem", back_populates="user", cascade="all, delete-orphan")
@@ -19,6 +20,7 @@ class User(Base):
     preferences = relationship("UserPreference", uselist=False, back_populates="user", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="user")
+    reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
 
 class Product(Base):
     __tablename__ = "products"
@@ -29,9 +31,15 @@ class Product(Base):
     category = Column(String(50), nullable=False)
     rating = Column(Float, default=4.5)
     image_url = Column(String(255), nullable=True)
+    gallery_images = Column(Text, nullable=True)  # JSON list of image URLs
+    brand = Column(String(100), nullable=True)
+    specifications = Column(Text, nullable=True)  # JSON dictionary of specs
     sizes = Column(String(100), nullable=True)  # e.g., "S,M,L,XL" or "7,8,9,10"
     colors = Column(String(100), nullable=True)  # e.g., "Red,Blue,Black"
     stock = Column(Integer, default=10)
+    
+    # Relationships
+    reviews = relationship("Review", back_populates="product", cascade="all, delete-orphan")
 
 class WishlistItem(Base):
     __tablename__ = "wishlist_items"
@@ -91,6 +99,12 @@ class Order(Base):
     email = Column(String(100), nullable=False)
     address = Column(Text, nullable=False)
     total_price = Column(Float, nullable=False)
+    subtotal = Column(Float, nullable=False, default=0.0)
+    tax_amount = Column(Float, nullable=False, default=0.0)
+    shipping_fee = Column(Float, nullable=False, default=0.0)
+    discount_amount = Column(Float, nullable=False, default=0.0)
+    coupon_code = Column(String(50), nullable=True)
+    estimated_delivery = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
     # Order management fields
@@ -102,6 +116,7 @@ class Order(Base):
     # Relationships
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    events = relationship("OrderEvent", back_populates="order", cascade="all, delete-orphan")
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -115,3 +130,35 @@ class OrderItem(Base):
     order = relationship("Order", back_populates="items")
     product = relationship("Product")
 
+class Review(Base):
+    __tablename__ = "reviews"
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    rating = Column(Integer, nullable=False)
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    # Relationships
+    product = relationship("Product", back_populates="reviews")
+    user = relationship("User", back_populates="reviews")
+
+class OrderEvent(Base):
+    __tablename__ = "order_events"
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    status = Column(String(50), nullable=False)
+    description = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    # Relationships
+    order = relationship("Order", back_populates="events")
+
+
+class Coupon(Base):
+    __tablename__ = "coupons"
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(50), nullable=False, unique=True, index=True)
+    discount_percentage = Column(Float, nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)

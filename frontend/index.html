@@ -14,7 +14,13 @@
     <!-- Navbar -->
     <header class="navbar">
         <div class="nav-container">
-            <a href="#" class="logo">
+            <button id="home-nav-btn" class="icon-btn" aria-label="Go to Home" style="margin-right: 0.5rem;" title="Home">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </button>
+            <a href="#" class="logo" id="main-logo-btn">
                 <span class="logo-icon">
                     <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
@@ -24,11 +30,14 @@
                 </span>
                 SPORTIX
             </a>
-            <div class="search-bar">
+            <div class="search-bar" style="display: flex; align-items: center;">
                 <span class="search-icon">
                     <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </span>
                 <input type="text" id="product-search" placeholder="Search premium sports gear...">
+                <button id="search-submit-btn" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); margin-left: 5px;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
             </div>
             <div class="nav-actions">
                 <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
@@ -61,7 +70,8 @@
                             <button class="dropdown-item" data-tab="notifications">🔔 Notification Settings</button>
                             <button class="dropdown-item" data-tab="security">🛡️ Security Settings</button>
                             <button class="dropdown-item" data-tab="support">💬 Help & Support</button>
-                            <hr class="dropdown-divider">
+                            <hr style="margin: 0.5rem 0; border: 1px solid var(--border);">
+                            <button id="admin-panel-btn" class="dropdown-item hidden" onclick="showView('admin')">👑 Admin Panel</button>
                             <button id="logout-btn" class="dropdown-item logout-btn">🚪 Logout</button>
                         </div>
                     </div>
@@ -84,10 +94,10 @@
                 <div class="hero-graphic">
                     <div class="glow-sphere text-glow"></div>
                     <div class="sports-showcase-grid">
-                        <div class="showcase-card ball-glow-1">🏸</div>
-                        <div class="showcase-card ball-glow-2">🏏</div>
-                        <div class="showcase-card ball-glow-3">🏀</div>
-                        <div class="showcase-card ball-glow-4">⚽</div>
+                        <div class="showcase-card ball-glow-1"><img src="assets/images/badminton_antigravity_1781187234278.png" style="width: 100%; height: 100%; object-fit: contain;"></div>
+                        <div class="showcase-card ball-glow-2"><img src="assets/images/cricket_antigravity_1781187171745.png" style="width: 100%; height: 100%; object-fit: contain;"></div>
+                        <div class="showcase-card ball-glow-3"><img src="assets/images/basketball_antigravity_1781187196857.png" style="width: 100%; height: 100%; object-fit: contain;"></div>
+                        <div class="showcase-card ball-glow-4"><img src="assets/images/football_antigravity_1781187184271.png" style="width: 100%; height: 100%; object-fit: contain;"></div>
                     </div>
                 </div>
             </section>
@@ -125,23 +135,23 @@
 
                 <!-- Promotional Cards -->
                 <div class="promo-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
-                    <div class="promo-card card-glass" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
-                        <div class="card-icon" style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));">⚽</div>
+                    <div class="promo-card card-glass" data-category="Football" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+                        <div class="card-icon" style="margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));"><img src="assets/images/football_antigravity_1781187184271.png" style="width: 60px; height: 60px; object-fit: contain;"></div>
                         <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem;">Football Deals</h3>
                         <p style="font-size: 0.9rem; color: var(--text-secondary);">Score Big Savings</p>
                     </div>
-                    <div class="promo-card card-glass" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
-                        <div class="card-icon" style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));">🏏</div>
+                    <div class="promo-card card-glass" data-category="Cricket" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+                        <div class="card-icon" style="margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));"><img src="assets/images/cricket_antigravity_1781187171745.png" style="width: 60px; height: 60px; object-fit: contain;"></div>
                         <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem;">Cricket Deals</h3>
                         <p style="font-size: 0.9rem; color: var(--text-secondary);">Hit It Out of the Park</p>
                     </div>
-                    <div class="promo-card card-glass" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
-                        <div class="card-icon" style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));">👟</div>
+                    <div class="promo-card card-glass" data-category="Running" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+                        <div class="card-icon" style="margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));"><img src="assets/images/running_antigravity_1781187257638.png" style="width: 60px; height: 60px; object-fit: contain;"></div>
                         <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem;">Running Shoes</h3>
                         <p style="font-size: 0.9rem; color: var(--text-secondary);">Step Up Your Pace</p>
                     </div>
-                    <div class="promo-card card-glass" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
-                        <div class="card-icon" style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));">🏋️‍♂️</div>
+                    <div class="promo-card card-glass" data-category="Fitness & Gym" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer;">
+                        <div class="card-icon" style="margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));"><img src="assets/images/fitness_antigravity_1781187270571.png" style="width: 60px; height: 60px; object-fit: contain;"></div>
                         <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.25rem;">Fitness Equipment</h3>
                         <p style="font-size: 0.9rem; color: var(--text-secondary);">Build Your Home Gym</p>
                     </div>
@@ -685,6 +695,105 @@
             </div>
         </div>
     </div>
+
+    <!-- Admin View -->
+    <div id="admin-view" class="dashboard-container view-section hidden">
+        <div class="dashboard-sidebar card-glass">
+            <h3 style="margin-bottom: 2rem;">Admin Panel</h3>
+            <button class="dash-tab-btn admin-tab-btn active" data-tab="admin-overview">Dashboard</button>
+            <button class="dash-tab-btn admin-tab-btn" data-tab="admin-products">Products</button>
+            <button class="dash-tab-btn admin-tab-btn" data-tab="admin-orders">Orders</button>
+            <button class="dash-tab-btn admin-tab-btn" data-tab="admin-users">Users</button>
+            <button class="dash-tab-btn admin-tab-btn" data-tab="admin-reviews">Reviews</button>
+        </div>
+        
+        <div class="dashboard-content card-glass">
+            <!-- Admin Overview -->
+            <div id="pane-admin-overview" class="dash-tab-panel admin-tab-panel">
+                <div class="dash-header">
+                    <h2>Admin Dashboard</h2>
+                    <p>Overview of platform metrics</p>
+                </div>
+                <div class="dash-stats-grid">
+                    <div class="stat-card"><h3>Total Products</h3><span id="admin-stat-products">0</span></div>
+                    <div class="stat-card"><h3>Total Orders</h3><span id="admin-stat-orders">0</span></div>
+                    <div class="stat-card"><h3>Total Users</h3><span id="admin-stat-users">0</span></div>
+                    <div class="stat-card"><h3>Total Revenue</h3><span id="admin-stat-revenue">$0.00</span></div>
+                </div>
+                <div class="dash-header" style="margin-top:2rem;">
+                    <h2>Recent Activities</h2>
+                </div>
+                <div id="admin-recent-activities" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Admin Products -->
+            <div id="pane-admin-products" class="dash-tab-panel admin-tab-panel hidden">
+                <div class="dash-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2>Products Management</h2>
+                    <button class="btn btn-primary btn-sm" onclick="showAdminProductForm()">➕ Add Product</button>
+                </div>
+                <div id="admin-products-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Admin Orders -->
+            <div id="pane-admin-orders" class="dash-tab-panel admin-tab-panel hidden">
+                <div class="dash-header">
+                    <h2>Orders Management</h2>
+                </div>
+                <div id="admin-orders-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Admin Users -->
+            <div id="pane-admin-users" class="dash-tab-panel admin-tab-panel hidden">
+                <div class="dash-header">
+                    <h2>Users Management</h2>
+                </div>
+                <div id="admin-users-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Admin Reviews -->
+            <div id="pane-admin-reviews" class="dash-tab-panel admin-tab-panel hidden">
+                <div class="dash-header">
+                    <h2>Reviews Management</h2>
+                </div>
+                <div id="admin-reviews-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Product Form Modal -->
+    <div id="admin-product-modal" class="modal-overlay hidden" style="z-index: 1000;">
+        <div class="modal card-glass" style="max-width: 600px;">
+            <button class="close-modal icon-btn" onclick="document.getElementById('admin-product-modal').classList.add('hidden')">✕</button>
+            <h3 id="admin-product-form-title">Add Product</h3>
+            <form id="admin-product-form" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                <input type="hidden" id="admin-product-id">
+                <input type="text" id="admin-product-name" placeholder="Product Name" required style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px;">
+                <textarea id="admin-product-desc" placeholder="Description" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px;"></textarea>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="number" id="admin-product-price" placeholder="Price" step="0.01" required style="flex:1; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px;">
+                    <input type="number" id="admin-product-stock" placeholder="Stock" required style="flex:1; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px;">
+                </div>
+                <input type="text" id="admin-product-category" placeholder="Category" required style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px;">
+                <input type="text" id="admin-product-image" placeholder="Image URL (e.g. assets/images/placeholder.png)" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px;">
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" id="admin-product-sizes" placeholder="Sizes (comma separated)" style="flex:1; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px;">
+                    <input type="text" id="admin-product-colors" placeholder="Colors (comma separated)" style="flex:1; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Save Product</button>
+            </form>
+        </div>
+    </div>
     <!-- Product Details Modal -->
     <div id="details-modal" class="modal-overlay">
         <div class="modal card-glass">
@@ -698,46 +807,162 @@
     </div>
     <!-- Checkout Modal -->
     <div id="checkout-modal" class="modal-overlay">
-        <div class="modal checkout-card card-glass">
+        <div class="modal checkout-card card-glass" style="max-width: 900px; width: 95%;">
             <button class="close-modal icon-btn close-checkout" aria-label="Close checkout">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
-            <h3>Secure Checkout</h3>
-            <div class="checkout-layout">
-                <form id="checkout-form">
-                    <div class="form-group">
-                        <label for="checkout-name">Full Name</label>
-                        <input type="text" id="checkout-name" required placeholder="John Doe">
-                    </div>
-                    <div class="form-group">
-                        <label for="checkout-email">Email Address</label>
-                        <input type="email" id="checkout-email" required placeholder="johndoe@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="checkout-address">Shipping Address</label>
-                        <textarea id="checkout-address" required placeholder="123 Athletic Way, Sports City" rows="3"></textarea>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="checkout-card">Card Details (Simulated)</label>
-                            <input type="text" id="checkout-card" required placeholder="4111 2222 3333 4444">
+            <h3 style="display: flex; align-items: center; gap: 0.5rem;">
+                Secure Checkout 
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="#00f0ff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </h3>
+            <div class="checkout-layout" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; margin-top: 1rem;">
+                <!-- Left Column: Forms -->
+                <div class="checkout-forms">
+                    <form id="checkout-form">
+                        <!-- Contact & Address -->
+                        <div class="checkout-section" style="margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);">
+                            <h4 style="margin-bottom: 1rem;">1. Shipping Details</h4>
+                            
+                            <!-- Address Selection (Visible if logged in) -->
+                            <div id="checkout-address-selection" class="form-group hidden" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left; margin-bottom: 1.5rem;">
+                                <label for="checkout-saved-address">Select Saved Address</label>
+                                <select id="checkout-saved-address" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    <option value="new">Enter New Address</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+
+                            <div id="checkout-manual-address">
+                                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                    <label for="checkout-name">Full Name</label>
+                                    <input type="text" id="checkout-name" required placeholder="John Doe" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                    <label for="checkout-email">Email Address</label>
+                                    <input type="email" id="checkout-email" required placeholder="johndoe@example.com" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                            </div>
+                            <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left; margin-bottom: 1rem;">
+                                <label for="checkout-address">Shipping Address</label>
+                                <textarea id="checkout-address" required placeholder="123 Athletic Way, Sports City" rows="2" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;"></textarea>
+                            </div>
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                    <label for="checkout-city">City</label>
+                                    <input type="text" id="checkout-city" required placeholder="New York" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                    <label for="checkout-zip">PIN Code</label>
+                                    <input type="text" id="checkout-zip" required placeholder="10001" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="checkout-expiry">Expiry</label>
-                            <input type="text" id="checkout-expiry" required placeholder="MM/YY">
+
+                        <!-- Payment Methods -->
+                        <div class="checkout-section">
+                            <h4 style="margin-bottom: 1rem;">2. Payment Method</h4>
+                            <div class="payment-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; overflow-x: auto; padding-bottom: 0.5rem;">
+                                <button type="button" class="btn btn-secondary btn-sm pay-tab active" data-pay="card">Card</button>
+                                <button type="button" class="btn btn-secondary btn-sm pay-tab" data-pay="upi">UPI</button>
+                                <button type="button" class="btn btn-secondary btn-sm pay-tab" data-pay="netbanking">Net Banking</button>
+                                <button type="button" class="btn btn-secondary btn-sm pay-tab" data-pay="wallet">Wallet</button>
+                                <button type="button" class="btn btn-secondary btn-sm pay-tab" data-pay="cod">COD</button>
+                            </div>
+                            
+                            <div id="pay-card" class="pay-pane active" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left; margin-bottom:1rem;">
+                                    <label for="checkout-card">Card Number</label>
+                                    <input type="text" id="checkout-card" placeholder="4111 2222 3333 4444" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                        <label for="checkout-expiry">Expiry</label>
+                                        <input type="text" id="checkout-expiry" placeholder="MM/YY" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                        <label for="checkout-cvv">CVV</label>
+                                        <input type="password" id="checkout-cvv" placeholder="123" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="pay-upi" class="pay-pane hidden" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                    <label for="checkout-upi">UPI ID</label>
+                                    <input type="text" id="checkout-upi" placeholder="username@upi" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                </div>
+                            </div>
+                            <div id="pay-netbanking" class="pay-pane hidden" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                    <label for="checkout-bank">Select Bank</label>
+                                    <select id="checkout-bank" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                        <option value="sbi">State Bank of India</option>
+                                        <option value="hdfc">HDFC Bank</option>
+                                        <option value="icici">ICICI Bank</option>
+                                        <option value="axis">Axis Bank</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="pay-wallet" class="pay-pane hidden" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
+                                    <label for="checkout-wallet">Select Wallet</label>
+                                    <select id="checkout-wallet" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                                        <option value="paytm">Paytm Wallet</option>
+                                        <option value="phonepe">PhonePe Wallet</option>
+                                        <option value="amazon">Amazon Pay</option>
+                                        <option value="gpay">Google Pay</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="pay-cod" class="pay-pane hidden" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); text-align: center;">
+                                <p style="color: var(--text-secondary);">Pay in cash when your order arrives.</p>
+                            </div>
                         </div>
-                    </div>
-                    <button type="submit" id="submit-order-btn" class="btn btn-primary btn-full">Place Order</button>
-                </form>
-                <div class="order-summary-sidebar">
-                    <h4>Order Summary</h4>
-                    <div id="checkout-summary-items">
+
+                        <div class="secure-checkout-indicator" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; color: var(--success); font-size: 0.85rem; font-weight: 600;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            <span>100% Secure Checkout &middot; SSL Encrypted</span>
+                        </div>
+
+                        <button type="submit" id="submit-order-btn" class="btn btn-primary btn-full" style="margin-top: 1rem;">Place Secure Order</button>
+                    </form>
+                </div>
+
+                <!-- Right Column: Order Summary -->
+                <div class="order-summary-sidebar" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; height: fit-content; border: 1px solid var(--border);">
+                    <h4 style="margin-bottom: 1rem;">Order Summary</h4>
+                    <div id="checkout-summary-items" style="max-height: 200px; overflow-y: auto; margin-bottom: 1rem;">
                         <!-- Loaded dynamically -->
                     </div>
-                    <hr>
-                    <div class="total-row font-bold">
+                    
+                    <div class="coupon-section" style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem;">
+                        <input type="text" id="coupon-input" placeholder="Coupon Code" style="flex:1; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; outline: none;">
+                        <button type="button" id="apply-coupon-btn" class="btn btn-secondary btn-sm">Apply</button>
+                    </div>
+
+                    <div class="summary-breakdown" style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px dashed var(--border); padding-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Subtotal</span>
+                            <span id="checkout-subtotal-val">$0.00</span>
+                        </div>
+                        <div id="coupon-row" style="display: none; justify-content: space-between; color: var(--accent);">
+                            <span>Discount</span>
+                            <span id="checkout-discount-val">-$0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Shipping</span>
+                            <span id="checkout-shipping-val">$0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>GST (18%)</span>
+                            <span id="checkout-gst-val">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <hr style="margin: 1rem 0; border: 1px solid var(--border);">
+                    <div class="total-row font-bold" style="display: flex; justify-content: space-between; font-size: 1.2rem; color: var(--text-primary);">
                         <span>Total Amount</span>
-                        <span id="checkout-summary-total">$0.00</span>
+                        <span id="checkout-final-total">$0.00</span>
                     </div>
                 </div>
             </div>
@@ -745,18 +970,39 @@
     </div>
     <!-- Success Modal -->
     <div id="success-modal" class="modal-overlay">
-        <div class="modal success-card card-glass text-center">
-            <div class="success-icon-wrap">
-                <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <div class="modal success-card card-glass text-center" style="max-width: 500px;">
+            <div class="success-icon-wrap" style="margin-bottom: 1.5rem;">
+                <svg viewBox="0 0 24 24" width="64" height="64" stroke="var(--accent)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             </div>
-            <h2>Order Placed!</h2>
-            <p>Your premium gear is being prepared for dispatch.</p>
-            <div class="success-details">
-                <p>Order ID: <strong id="success-order-id">#00000</strong></p>
-                <p>Total Charged: <strong id="success-order-total">$0.00</strong></p>
-                <p>Timestamp: <span id="success-order-time">Just now</span></p>
+            <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Order Confirmed!</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Your premium gear is being prepared for dispatch.</p>
+            
+            <div class="success-details" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; text-align: left; border: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span style="color: var(--text-secondary);">Order ID</span>
+                    <strong id="success-order-id">#00000</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span style="color: var(--text-secondary);">Total Paid</span>
+                    <strong id="success-order-total">$0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span style="color: var(--text-secondary);">Order Time</span>
+                    <span id="success-order-time">Just now</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 0.75rem; border-top: 1px dashed var(--border);">
+                    <span style="color: var(--text-secondary);">Est. Delivery</span>
+                    <strong id="success-est-delivery" style="color: #00f0ff;">--</strong>
+                </div>
             </div>
-            <button class="btn btn-primary" id="success-close-btn">Awesome, Continue Shopping</button>
+            
+            <div class="success-actions" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="showToast('Invoice downloading...', 'success')">📄 Invoice</button>
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="showToast('Tracking info sent to your email.', 'success')">📍 Track</button>
+                </div>
+                <button class="btn btn-primary" id="success-close-btn" style="width: 100%;">Continue Shopping</button>
+            </div>
         </div>
     </div>
     <!-- Dynamic Toast Notification Container -->

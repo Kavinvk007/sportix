@@ -1,5 +1,5 @@
 /* Sportix Frontend Logic */
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') ? "http://127.0.0.1:8000" : "";
 
 // App State
 let products = [];
@@ -53,6 +53,7 @@ const successOrderTime = document.getElementById("success-order-time");
 const homeView = document.getElementById("home-view");
 const authView = document.getElementById("auth-view");
 const dashboardView = document.getElementById("dashboard-view");
+const adminView = document.getElementById("admin-view");
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
 const loginFormContainer = document.getElementById("login-form-container");
@@ -139,6 +140,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     fetchProducts();
     updateCartUI();
     registerEventListeners();
+    registerAuthListeners();
+    initPromoSection();
 });
 // Theme Logic
 function initTheme() {
@@ -212,6 +215,7 @@ function renderProductGrid(items) {
     productsGrid.innerHTML = items.map(product => {
         const emoji = categoryEmojiMap[product.category.toLowerCase()] || "📦";
         const isOutOfStock = product.stock <= 0;
+        const isWishlisted = wishlist.some(w => w.product_id === product.id);
         
         return `
             <div class="product-card">
@@ -219,6 +223,9 @@ function renderProductGrid(items) {
                 ${isOutOfStock ? '<span class="badge-outofstock">Out Of Stock</span>' : ''}
                 <div class="product-img-wrap">
                     <img src="${product.image_url}" alt="${product.name}" class="product-image" loading="lazy" />
+                    <button class="product-wishlist-btn ${isWishlisted ? 'wishlisted' : ''}" data-id="${product.id}" aria-label="${isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}" title="${isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}">
+                        ${isWishlisted ? '❤️' : '🤍'}
+                    </button>
                 </div>
                 <div class="product-category">${product.category}</div>
                 <h3 class="product-title">${product.name}</h3>
@@ -243,9 +250,13 @@ function renderProductGrid(items) {
 // Product Details Modal
 async function openProductDetails(id) {
     try {
-        const response = await fetch(`${API_BASE}/api/products/${id}`);
+        const [response, reviewsResponse] = await Promise.all([
+            fetch(`${API_BASE}/api/products/${id}`),
+            fetch(`${API_BASE}/api/products/${id}/reviews`)
+        ]);
         if (!response.ok) throw new Error("Failed to fetch product details");
         const product = await response.json();
+        const reviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
         
         const emoji = categoryEmojiMap[product.category.toLowerCase()] || "📦";
         const isOutOfStock = product.stock <= 0;
@@ -253,28 +264,55 @@ async function openProductDetails(id) {
         const sizesList = product.sizes ? product.sizes.split(",") : [];
         const colorsList = product.colors ? product.colors.split(",") : [];
         
+        // Mock Gallery Images
+        const galleryImages = [
+            product.image_url,
+            product.image_url,
+            product.image_url
+        ];
+        
+        // Mock Related Products
+        const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+        
         // Reset selections
         selectedSize = sizesList[0] || "";
         selectedColor = colorsList[0] || "";
         
         detailsContent.innerHTML = `
-            <div class="details-img-wrap">
-                <img src="${product.image_url}" alt="${product.name}" class="product-image" />
-            </div>
-            <div class="details-info-wrap">
-                <span class="details-category">${product.category}</span>
-                <h2 class="details-title">${product.name}</h2>
-                <div class="details-rating">
-                    <span class="star-icon">★</span>
-                    <span style="font-weight: 600;">${product.rating.toFixed(1)}</span>
+            <div class="product-gallery" style="display: flex; gap: 1rem;">
+                <div class="gallery-thumbnails" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto;">
+                    ${galleryImages.map((img, i) => `
+                        <img src="${img}" class="thumb-img ${i === 0 ? 'active' : ''}" style="width: 60px; height: 60px; object-fit: contain; cursor: pointer; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem; opacity: ${i === 0 ? '1' : '0.6'}; transition: all 0.2s;" onclick="document.getElementById('main-gallery-img').src='${img}'; document.querySelectorAll('.thumb-img').forEach(t=>t.style.opacity='0.6'); this.style.opacity='1';">
+                    `).join('')}
                 </div>
-                <div class="details-price">$${product.price.toFixed(2)}</div>
-                <p class="details-description">${product.description}</p>
+                <div class="details-img-wrap" style="flex: 1; border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--bg-tertiary);">
+                    <img id="main-gallery-img" src="${product.image_url}" alt="${product.name}" class="product-image" style="max-height: 400px; width: 100%; object-fit: contain;" />
+                </div>
+            </div>
+            
+            <div class="details-info-wrap" style="flex: 1; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <span class="details-category" style="color: var(--accent); font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">${product.category}</span>
+                        <h2 class="details-title" style="font-size: 1.8rem; margin: 0.5rem 0;">${product.name}</h2>
+                    </div>
+                    <button class="icon-btn product-wishlist-btn" data-id="${product.id}" style="border: 1px solid var(--border); border-radius: 50%; padding: 0.5rem;">🤍</button>
+                </div>
+                
+                <div class="details-rating" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: #fbbf24;">
+                    <span class="star-icon">★★★★☆</span>
+                    <span style="font-weight: 600; color: var(--text-primary);">${product.rating.toFixed(1)}</span>
+                    <a href="#reviews-section" style="color: var(--accent); font-size: 0.9rem; margin-left: 0.5rem; text-decoration: none;">(128 Reviews)</a>
+                </div>
+                
+                <div class="details-price" style="font-size: 2rem; font-weight: 700; color: #00f0ff; margin-bottom: 1rem;">$${product.price.toFixed(2)}</div>
+                
+                <p class="details-description" style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">${product.description}</p>
                 
                 ${sizesList.length > 0 ? `
-                    <div class="option-group">
-                        <h4>Available Sizes</h4>
-                        <div class="options-list">
+                    <div class="option-group" style="margin-bottom: 1rem;">
+                        <h4 style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Available Sizes</h4>
+                        <div class="options-list" style="display: flex; gap: 0.5rem;">
                             ${sizesList.map((s, idx) => `
                                 <span class="option-item size-option ${idx === 0 ? 'selected' : ''}" data-value="${s}">${s}</span>
                             `).join("")}
@@ -283,9 +321,9 @@ async function openProductDetails(id) {
                 ` : ''}
                 
                 ${colorsList.length > 0 ? `
-                    <div class="option-group">
-                        <h4>Available Colors</h4>
-                        <div class="options-list">
+                    <div class="option-group" style="margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Available Colors</h4>
+                        <div class="options-list" style="display: flex; gap: 0.5rem;">
                             ${colorsList.map((c, idx) => `
                                 <span class="option-item color-option ${idx === 0 ? 'selected' : ''}" data-value="${c}">${c}</span>
                             `).join("")}
@@ -293,19 +331,119 @@ async function openProductDetails(id) {
                     </div>
                 ` : ''}
                 
-                <div class="details-stock-status">
+                <div class="delivery-check" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border);">
+                    <h4 style="margin-bottom: 0.5rem; font-size: 0.9rem;">Check Delivery Options</h4>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="pincode-input" placeholder="Enter Pincode" style="flex:1; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.5rem; border-radius: 6px; font-size: 0.9rem; outline: none;">
+                        <button class="btn btn-secondary btn-sm" onclick="checkPincode()">Check</button>
+                    </div>
+                    <p id="pincode-result" style="font-size: 0.85rem; margin-top: 0.5rem; display: none;"></p>
+                </div>
+
+                <div class="details-stock-status" style="margin-bottom: 1.5rem;">
                     Status: ${isOutOfStock ? 
-                        '<span class="stock-badge-out">Out of Stock</span>' : 
-                        `<span class="stock-badge-in">In Stock (${product.stock} units available)</span>`
+                        '<span class="stock-badge-out" style="color: var(--danger); font-weight: 600;">Out of Stock</span>' : 
+                        `<span class="stock-badge-in" style="color: var(--success); font-weight: 600;">In Stock (${product.stock} units available)</span>`
                     }
                 </div>
                 
-                <button id="modal-add-to-cart" class="btn btn-primary" ${isOutOfStock ? 'disabled' : ''}>
-                    Add Gear to Cart
-                </button>
+                <div class="action-buttons" style="display: flex; gap: 1rem; margin-top: auto;">
+                    <button id="modal-add-to-cart" class="btn btn-secondary" style="flex: 1;" ${isOutOfStock ? 'disabled' : ''}>Add to Cart</button>
+                    <button id="modal-buy-now" class="btn btn-primary" style="flex: 1;" ${isOutOfStock ? 'disabled' : ''}>Buy Now</button>
+                </div>
+            </div>
+            
+            <!-- Specifications Tab -->
+            <div style="grid-column: 1 / -1; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">Product Specifications</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; color: var(--text-secondary);">
+                    <div><strong>Brand:</strong> Sportix Elite</div>
+                    <div><strong>Material:</strong> Premium Synthetic</div>
+                    <div><strong>Weight:</strong> 450g</div>
+                    <div><strong>Warranty:</strong> 1 Year Manufacturer</div>
+                </div>
+            </div>
+
+            <!-- Frequently Bought Together -->
+            <div style="grid-column: 1 / -1; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">Frequently Bought Together</h3>
+                <div style="display: flex; align-items: center; gap: 1rem; background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); flex-wrap: wrap;">
+                    <img src="${product.image_url}" style="width: 80px; height: 80px; object-fit: contain; background: var(--bg-tertiary); border-radius: 8px;">
+                    <span style="font-size: 1.5rem; color: var(--text-secondary);">+</span>
+                    <img src="${related.length > 0 ? related[0].image_url : 'assets/images/user_avatar.png'}" style="width: 80px; height: 80px; object-fit: contain; background: var(--bg-tertiary); border-radius: 8px;">
+                    <div style="margin-left: auto; text-align: right; flex-grow: 1;">
+                        <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Total Price:</p>
+                        <strong style="font-size: 1.5rem; color: #00f0ff;">$${(product.price + (related.length > 0 ? related[0].price : 20)).toFixed(2)}</strong>
+                        <br>
+                        <button class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;" onclick="showToast('Added bundle to cart')">Add Both to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div id="reviews-section" style="grid-column: 1 / -1; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">Customer Reviews</h3>
+                
+                ${token ? `
+                <div class="review-form" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">Write a Review</h4>
+                    <form id="submit-review-form" onsubmit="handleReviewSubmit(event, ${product.id})">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <label>Rating:</label>
+                            <select id="review-rating" style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; padding: 0.2rem;">
+                                <option value="5">5 Stars</option>
+                                <option value="4">4 Stars</option>
+                                <option value="3">3 Stars</option>
+                                <option value="2">2 Stars</option>
+                                <option value="1">1 Star</option>
+                            </select>
+                        </div>
+                        <textarea id="review-comment" placeholder="What did you think about this product?" style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); border-radius: 8px; padding: 0.8rem; margin-bottom: 1rem; min-height: 80px;" required></textarea>
+                        <button type="submit" class="btn btn-secondary">Submit Review</button>
+                    </form>
+                </div>
+                ` : `
+                <div style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+                    <a href="#" onclick="closeAllModals(); openAuthView('login'); return false;" style="color: var(--accent);">Log in</a> to write a review.
+                </div>
+                `}
+
+                <div id="reviews-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    ${reviews.length === 0 ? '<p style="color: var(--text-secondary);">No reviews yet. Be the first to review!</p>' : reviews.map(r => `
+                    <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <strong style="color: var(--text-primary);">${r.user_name || 'Anonymous'}</strong>
+                            <span style="color: #fbbf24;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">${r.comment || ''}</p>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">${r.created_at}</span>
+                    </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- Related Products -->
+            <div style="grid-column: 1 / -1; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">Similar Products</h3>
+                <div style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1rem;">
+                    ${related.map(r => `
+                        <div style="min-width: 200px; max-width: 200px; background: var(--bg-secondary); padding: 1rem; border-radius: 12px; border: 1px solid var(--border); cursor: pointer;" onclick="openProductDetails(${r.id})">
+                            <img src="${r.image_url}" style="width: 100%; height: 120px; object-fit: contain; margin-bottom: 1rem;">
+                            <h5 style="font-size: 1rem; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.name}</h5>
+                            <span style="color: #00f0ff; font-weight: 700;">$${r.price.toFixed(2)}</span>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         `;
         
+        detailsContent.style.display = 'grid';
+        detailsContent.style.gridTemplateColumns = '1fr 1fr';
+        detailsContent.style.gap = '2rem';
+        if(window.innerWidth < 768) {
+             detailsContent.style.gridTemplateColumns = '1fr';
+        }
+
         // Size & Color selection listeners
         document.querySelectorAll(".size-option").forEach(el => {
             el.addEventListener("click", (e) => {
@@ -321,18 +459,72 @@ async function openProductDetails(id) {
                 selectedColor = e.target.dataset.value;
             });
         });
+        
         // Add to Cart from Modal
         document.getElementById("modal-add-to-cart").onclick = () => {
             addToCart(product.id, selectedSize, selectedColor);
             closeAllModals();
+            cartDrawer.classList.add("active");
         };
+        
+        // Buy Now from Modal
+        document.getElementById("modal-buy-now").onclick = () => {
+            addToCart(product.id, selectedSize, selectedColor);
+            closeAllModals();
+            openCheckout();
+        };
+
         detailsModal.classList.add("active");
     } catch (error) {
         console.error(error);
         showToast("Error loading product details", "danger");
     }
 }
+
+// Global Pincode Mock
+window.checkPincode = function() {
+    const p = document.getElementById("pincode-input").value;
+    const res = document.getElementById("pincode-result");
+    res.style.display = "block";
+    if(p.length >= 5) {
+        res.style.color = "var(--success)";
+        res.innerText = "✓ Delivery available to this location within 3-4 days.";
+    } else {
+        res.style.color = "var(--danger)";
+        res.innerText = "✗ Invalid Pincode or out of delivery area.";
+    }
+};
 // Cart Logic
+async function handleReviewSubmit(e, productId) {
+    e.preventDefault();
+    const rating = parseInt(document.getElementById("review-rating").value);
+    const comment = document.getElementById("review-comment").value;
+    const btn = e.target.querySelector("button[type=submit]");
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+
+    try {
+        const res = await fetch(`${API_BASE}/api/products/${productId}/reviews`, {
+            method: "POST",
+            headers: { 
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ rating, comment })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Failed to submit review");
+        
+        showToast("Review added successfully! ⭐");
+        // Reload product details to show new review
+        openProductDetails(productId);
+    } catch (err) {
+        showToast(err.message, "danger");
+        btn.disabled = false;
+        btn.textContent = "Submit Review";
+    }
+}
+
 function addToCart(productId, size = "", color = "") {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -451,6 +643,8 @@ function updateCartUI() {
     cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
 }
 // Checkout Process
+let appliedCouponDiscount = 0;
+
 function openCheckout() {
     if (cart.length === 0) return;
     
@@ -459,87 +653,269 @@ function openCheckout() {
         const itemTotal = item.price * item.quantity;
         subtotal += itemTotal;
         return `
-            <div class="summary-item">
-                <span>${item.name} (x${item.quantity})</span>
-                <span>$${itemTotal.toFixed(2)}</span>
+            <div class="summary-item" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.75rem;">
+                <img src="${item.image_url}" style="width: 50px; height: 50px; object-fit: contain; background: var(--bg-tertiary); border-radius: 6px;">
+                <div style="flex: 1;">
+                    <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem;">${item.name} (x${item.quantity})</p>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary);">${item.size ? `Size: ${item.size} | ` : ''} ${item.color ? `Color: ${item.color}` : ''}</p>
+                </div>
+                <div style="font-weight: 700; color: #00f0ff;">$${itemTotal.toFixed(2)}</div>
             </div>
         `;
     }).join("");
     
-    checkoutSummaryTotal.textContent = `$${subtotal.toFixed(2)}`;
+    // Apply dummy calculations
+    const shipping = subtotal > 150 ? 0 : 10;
+    const gst = subtotal * 0.18;
+    const total = subtotal + shipping + gst - appliedCouponDiscount;
+    
+    document.getElementById("checkout-subtotal-val").textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById("checkout-shipping-val").textContent = shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`;
+    document.getElementById("checkout-gst-val").textContent = `$${gst.toFixed(2)}`;
+    
+    if (appliedCouponDiscount > 0) {
+        document.getElementById("coupon-row").style.display = "flex";
+        document.getElementById("checkout-discount-val").textContent = `-$${appliedCouponDiscount.toFixed(2)}`;
+    } else {
+        document.getElementById("coupon-row").style.display = "none";
+    }
+
+    document.getElementById("checkout-final-total").textContent = `$${total.toFixed(2)}`;
     
     cartDrawer.classList.remove("active");
     checkoutModal.classList.add("active");
+    
+    // Payment tab listener setup
+    document.querySelectorAll(".pay-tab").forEach(tab => {
+        tab.onclick = (e) => {
+            document.querySelectorAll(".pay-tab").forEach(t => t.classList.remove("active"));
+            e.target.classList.add("active");
+            document.querySelectorAll(".pay-pane").forEach(p => p.classList.add("hidden"));
+            document.getElementById(`pay-${e.target.dataset.pay}`).classList.remove("hidden");
+        };
+    });
+
+    // Coupon listener
+    const applyCouponBtn = document.getElementById("apply-coupon-btn");
+    if(applyCouponBtn) {
+        applyCouponBtn.onclick = async () => {
+            const code = document.getElementById("coupon-input").value.toUpperCase();
+            if(!code) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/cart/apply-coupon`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code })
+                });
+                if(!res.ok) {
+                    showToast("Invalid or expired Coupon Code", "danger");
+                    appliedCouponDiscount = 0;
+                    openCheckout();
+                    return;
+                }
+                const data = await res.json();
+                appliedCouponDiscount = subtotal * (data.discount_percentage / 100);
+                showToast(`Coupon Applied: ${data.discount_percentage}% Off`);
+                openCheckout();
+            } catch(e) {
+                showToast("Error applying coupon", "danger");
+            }
+        };
+    }
+
+    // Address Selection Logic
+    const addressSelection = document.getElementById("checkout-address-selection");
+    const addressSelect = document.getElementById("checkout-saved-address");
+    const manualAddress = document.getElementById("checkout-manual-address");
+    
+    if (token && currentUser) {
+        addressSelection.classList.remove("hidden");
+        // Populate options
+        addressSelect.innerHTML = `<option value="new">Enter New Address</option>`;
+        if (addresses && addresses.length > 0) {
+            addresses.forEach(addr => {
+                const opt = document.createElement("option");
+                opt.value = addr.id;
+                opt.textContent = `${addr.label} - ${addr.address_line}, ${addr.city}`;
+                if (addr.is_default) opt.selected = true;
+                addressSelect.appendChild(opt);
+            });
+            // Initially hide manual if a saved address is selected
+            if (addressSelect.value !== "new") {
+                manualAddress.classList.add("hidden");
+                // Remove required attributes from manual fields so form can submit
+                document.getElementById("checkout-name").removeAttribute("required");
+                document.getElementById("checkout-email").removeAttribute("required");
+                document.getElementById("checkout-address").removeAttribute("required");
+                document.getElementById("checkout-city").removeAttribute("required");
+                document.getElementById("checkout-zip").removeAttribute("required");
+            }
+        }
+        
+        addressSelect.onchange = (e) => {
+            if (e.target.value === "new") {
+                manualAddress.classList.remove("hidden");
+                document.getElementById("checkout-name").setAttribute("required", "true");
+                document.getElementById("checkout-email").setAttribute("required", "true");
+                document.getElementById("checkout-address").setAttribute("required", "true");
+                document.getElementById("checkout-city").setAttribute("required", "true");
+                document.getElementById("checkout-zip").setAttribute("required", "true");
+            } else {
+                manualAddress.classList.add("hidden");
+                document.getElementById("checkout-name").removeAttribute("required");
+                document.getElementById("checkout-email").removeAttribute("required");
+                document.getElementById("checkout-address").removeAttribute("required");
+                document.getElementById("checkout-city").removeAttribute("required");
+                document.getElementById("checkout-zip").removeAttribute("required");
+            }
+        };
+    } else {
+        addressSelection.classList.add("hidden");
+        manualAddress.classList.remove("hidden");
+    }
 }
+
 async function handleCheckoutSubmit(e) {
     e.preventDefault();
     
     const submitBtn = document.getElementById("submit-order-btn");
     submitBtn.disabled = true;
-    submitBtn.textContent = "Processing Order...";
+    submitBtn.textContent = "Processing Secure Payment...";
     
-    const orderItems = cart.map(item => ({
-        product_id: item.product_id,
-        quantity: item.quantity
-    }));
-    
-    const orderPayload = {
-        customer_name: document.getElementById("checkout-name").value,
-        email: document.getElementById("checkout-email").value,
-        address: document.getElementById("checkout-address").value,
-        items: orderItems
-    };
-    
-    try {
-        const response = await fetch(`${API_BASE}/api/checkout`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(orderPayload)
-        });
+    setTimeout(async () => {
+        const orderItems = cart.map(item => ({
+            product_id: item.product_id,
+            quantity: item.quantity
+        }));
         
-        const result = await response.json();
+        const addressSelect = document.getElementById("checkout-saved-address");
+        let custName, custEmail, custAddress;
         
-        if (!response.ok) {
-            throw new Error(result.detail || "Checkout failed");
+        if (token && currentUser && addressSelect && addressSelect.value !== "new") {
+            const addrId = parseInt(addressSelect.value);
+            const addr = addresses.find(a => a.id === addrId);
+            if(addr) {
+                custName = addr.full_name;
+                custEmail = currentUser.email;
+                custAddress = `${addr.address_line}, ${addr.city}, ${addr.state} ${addr.zip_code}`;
+            }
         }
         
-        // Order Successful
-        cart = [];
-        saveCart();
-        updateCartUI();
+        if (!custName) {
+            custName = document.getElementById("checkout-name").value;
+            custEmail = document.getElementById("checkout-email").value;
+            custAddress = document.getElementById("checkout-address").value + ", " + document.getElementById("checkout-city").value + " - " + document.getElementById("checkout-zip").value;
+        }
+
+        const orderPayload = {
+            customer_name: custName,
+            email: custEmail,
+            address: custAddress,
+            items: orderItems,
+            coupon_code: appliedCouponDiscount > 0 ? document.getElementById("coupon-input").value.toUpperCase() : null
+        };
         
-        checkoutModal.classList.remove("active");
-        
-        // Set success modal contents
-        successOrderId.textContent = `#${result.order_id}`;
-        successOrderTotal.textContent = `$${result.total_price.toFixed(2)}`;
-        successOrderTime.textContent = result.created_at;
-        
-        successModal.classList.add("active");
-        checkoutForm.reset();
-    } catch (error) {
-        console.error(error);
-        showToast(error.message || "An error occurred during checkout", "danger");
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Place Order";
-    }
+        try {
+            const reqHeaders = { "Content-Type": "application/json" };
+            if (token) reqHeaders["Authorization"] = `Bearer ${token}`;
+            
+            const response = await fetch(`${API_BASE}/api/checkout`, {
+                method: "POST",
+                headers: reqHeaders,
+                body: JSON.stringify(orderPayload)
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.detail || "Checkout failed");
+            }
+            
+            // Order Successful
+            cart = [];
+            appliedCouponDiscount = 0;
+            saveCart();
+            updateCartUI();
+            
+            checkoutModal.classList.remove("active");
+            
+            // Set success modal contents
+            successOrderId.textContent = `#${result.order_id}`;
+            const finalFrontendTotal = document.getElementById("checkout-final-total").textContent;
+            successOrderTotal.textContent = finalFrontendTotal;
+            successOrderTime.textContent = new Date().toLocaleString();
+            
+            // Est delivery = +3 days
+            const d = new Date();
+            d.setDate(d.getDate() + 3);
+            document.getElementById("success-est-delivery").textContent = d.toDateString();
+
+            successModal.classList.add("active");
+            checkoutForm.reset();
+            
+            // Refresh orders list if logged in
+            if (token) loadOrders();
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "An error occurred during checkout", "danger");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Place Secure Order";
+        }
+    }, 1500);
 }
 // Event Listeners Registration
 function registerEventListeners() {
     // Theme toggle
     themeToggleBtn.addEventListener("click", toggleTheme);
+
+    // Home navigation
+    const homeNavBtn = document.getElementById("home-nav-btn");
+    if (homeNavBtn) {
+        homeNavBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            showView("home");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    }
+    const mainLogoBtn = document.getElementById("main-logo-btn");
+    if (mainLogoBtn) {
+        mainLogoBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            showView("home");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    }
     
-    // Search input
+    // Search input — debounce on typing
     let searchTimeout;
     searchInput.addEventListener("input", (e) => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             searchQuery = e.target.value.trim();
             fetchProducts();
-        }, 400); // Debounce search
+        }, 400);
+    });
+    
+    // Search — submit button click
+    const searchSubmitBtn = document.getElementById("search-submit-btn");
+    if (searchSubmitBtn) {
+        searchSubmitBtn.addEventListener("click", () => {
+            searchQuery = searchInput.value.trim();
+            fetchProducts();
+            showView("home");
+            document.getElementById("shop-section").scrollIntoView({ behavior: "smooth" });
+        });
+    }
+    // Search — Enter key
+    searchInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            searchQuery = searchInput.value.trim();
+            fetchProducts();
+            showView("home");
+            document.getElementById("shop-section").scrollIntoView({ behavior: "smooth" });
+        }
     });
     
     // Category click
@@ -604,16 +980,19 @@ function registerEventListeners() {
     
     // Product grid buttons event delegation (Details and Quick Add)
     productsGrid.addEventListener("click", (e) => {
-        const id = parseInt(e.target.dataset.id);
-        if (!id) return;
+        const btn = e.target.closest("button");
+        if (!btn || !btn.dataset.id) return;
         
-        if (e.target.classList.contains("view-details-btn")) {
+        const id = parseInt(btn.dataset.id);
+        if (btn.classList.contains("view-details-btn")) {
             openProductDetails(id);
-        } else if (e.target.classList.contains("add-quick-btn")) {
+        } else if (btn.classList.contains("add-quick-btn")) {
             const product = products.find(p => p.id === id);
             const sizes = product && product.sizes ? product.sizes.split(",") : [];
             const colors = product && product.colors ? product.colors.split(",") : [];
             addToCart(id, sizes[0] || "", colors[0] || "");
+        } else if (btn.classList.contains("product-wishlist-btn")) {
+            toggleWishlist(id);
         }
     });
     
@@ -652,6 +1031,20 @@ function registerEventListeners() {
     
     // Success Close button
     document.getElementById("success-close-btn").addEventListener("click", closeAllModals);
+
+    // Promo category cards — click to filter shop by category
+    document.querySelectorAll(".promo-card[data-category]").forEach(card => {
+        card.addEventListener("click", () => {
+            const category = card.dataset.category;
+            activeCategory = category;
+            document.querySelectorAll(".category-tab").forEach(t => {
+                t.classList.toggle("active", t.dataset.category === category);
+            });
+            fetchProducts();
+            const shopSection = document.getElementById("shop-section");
+            if (shopSection) shopSection.scrollIntoView({ behavior: "smooth" });
+        });
+    });
 }
 function resetFilters() {
     priceSlider.value = 250;
@@ -749,16 +1142,28 @@ function updateNavForUser() {
     if (navUsername) navUsername.textContent = currentUser.full_name.split(" ")[0];
     if (dropdownFullName) dropdownFullName.textContent = currentUser.full_name;
     if (dropdownEmail) dropdownEmail.textContent = currentUser.email;
+    
+    const adminPanelBtn = document.getElementById("admin-panel-btn");
+    if (adminPanelBtn) {
+        if (currentUser.is_admin) adminPanelBtn.classList.remove("hidden");
+        else adminPanelBtn.classList.add("hidden");
+    }
 }
 
 function showView(view) {
-    // view = "home" | "auth" | "dashboard"
+    // view = "home" | "auth" | "dashboard" | "admin"
     homeView.classList.add("hidden");
     authView.classList.add("hidden");
     dashboardView.classList.add("hidden");
+    if(adminView) adminView.classList.add("hidden");
+    
     if (view === "home") homeView.classList.remove("hidden");
     else if (view === "auth") authView.classList.remove("hidden");
     else if (view === "dashboard") dashboardView.classList.remove("hidden");
+    else if (view === "admin") {
+        if(adminView) adminView.classList.remove("hidden");
+        loadAdminDashboard();
+    }
 }
 
 function openAuthView(tab = "login") {
@@ -1014,6 +1419,7 @@ async function toggleWishlist(productId) {
             showToast("Added to wishlist ❤️");
         }
         if (statWishlistCount) statWishlistCount.textContent = wishlist.length;
+        filterAndRenderProducts(); // Update heart icon states
     } catch (e) { showToast("Wishlist error", "danger"); }
 }
 
@@ -1028,6 +1434,7 @@ async function removeFromWishlist(productId) {
         renderWishlist();
         if (statWishlistCount) statWishlistCount.textContent = wishlist.length;
         showToast("Removed from wishlist");
+        filterAndRenderProducts(); // Update heart icon states
     } catch (e) { showToast("Error removing item", "danger"); }
 }
 
@@ -1151,8 +1558,23 @@ function showTrackingModal(data) {
     modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
 }
 
-function viewInvoice(orderId) {
-    window.open(`${API_BASE}/api/orders/${orderId}/invoice?token=${token}`, "_blank");
+async function viewInvoice(orderId) {
+    try {
+        showToast("Generating invoice...", "info");
+        const res = await fetch(`${API_BASE}/api/orders/${orderId}/invoice`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Failed to generate invoice");
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `invoice_${orderId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch(e) { showToast(e.message, "danger"); }
 }
 
 async function cancelOrder(orderId) {
@@ -1604,14 +2026,6 @@ function registerAuthListeners() {
 }
 
 // ============================================
-// PATCH: Add registerAuthListeners to init
-// ============================================
-const _origDOMReady = document.addEventListener.bind(document);
-// Re-attach auth listeners on DOMContentLoaded
-// (Works because we're appended before </body>)
-registerAuthListeners();
-
-// ============================================
 // PROMO SECTION LOGIC
 // ============================================
 
@@ -1698,9 +2112,354 @@ function initPromoSection() {
     }
 }
 
-// Initialize promo section on load
-document.addEventListener('DOMContentLoaded', initPromoSection);
-// Fallback in case DOMContentLoaded already fired
-if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    initPromoSection();
+// Initialize promo section on load — handled in main DOMContentLoaded
+
+// ==========================================
+// ADMIN DASHBOARD LOGIC
+// ==========================================
+
+const adminTabBtns = document.querySelectorAll(".admin-tab-btn");
+const adminTabPanels = document.querySelectorAll(".admin-tab-panel");
+
+adminTabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+        adminTabBtns.forEach(b => b.classList.remove("active"));
+        adminTabPanels.forEach(p => p.classList.add("hidden"));
+        btn.classList.add("active");
+        const target = btn.dataset.tab;
+        document.getElementById("pane-" + target).classList.remove("hidden");
+        
+        if(target === "admin-overview") loadAdminDashboard();
+        if(target === "admin-products") loadAdminProducts();
+        if(target === "admin-orders") loadAdminOrders();
+        if(target === "admin-users") loadAdminUsers();
+        if(target === "admin-reviews") loadAdminReviews();
+    });
+});
+
+async function loadAdminDashboard() {
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/dashboard`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Failed to load metrics");
+        const data = await res.json();
+        
+        document.getElementById("admin-stat-products").textContent = data.metrics.total_products;
+        document.getElementById("admin-stat-orders").textContent = data.metrics.total_orders;
+        document.getElementById("admin-stat-users").textContent = data.metrics.total_users;
+        document.getElementById("admin-stat-revenue").textContent = "$" + data.metrics.total_revenue.toFixed(2);
+        
+        const recentBox = document.getElementById("admin-recent-activities");
+        if(data.recent_activities.length === 0) {
+            recentBox.innerHTML = "<p>No recent activities.</p>";
+        } else {
+            recentBox.innerHTML = data.recent_activities.map(act => `
+                <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; display: flex; justify-content: space-between;">
+                    <span>${act.message}</span>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">${act.time}</span>
+                </div>
+            `).join("");
+        }
+    } catch (err) {
+        console.error(err);
+        showToast("Error loading dashboard", "danger");
+    }
+}
+
+async function loadAdminProducts() {
+    try {
+        const res = await fetch(`${API_BASE}/api/products`);
+        const data = await res.json();
+        
+        const list = document.getElementById("admin-products-list");
+        list.innerHTML = `
+            <table style="width:100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <th style="padding: 1rem;">ID</th>
+                        <th style="padding: 1rem;">Name</th>
+                        <th style="padding: 1rem;">Price</th>
+                        <th style="padding: 1rem;">Stock</th>
+                        <th style="padding: 1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(p => `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 1rem;">${p.id}</td>
+                            <td style="padding: 1rem;">${p.name}</td>
+                            <td style="padding: 1rem;">$${p.price.toFixed(2)}</td>
+                            <td style="padding: 1rem;">${p.stock}</td>
+                            <td style="padding: 1rem; display:flex; gap:0.5rem;">
+                                <button class="btn btn-secondary btn-sm" onclick='editAdminProduct(${JSON.stringify(p).replace(/'/g, "&#39;")})'>Edit</button>
+                                <button class="btn btn-secondary btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="deleteAdminProduct(${p.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+    } catch (err) {
+        showToast("Error loading products", "danger");
+    }
+}
+
+function showAdminProductForm() {
+    document.getElementById("admin-product-id").value = "";
+    document.getElementById("admin-product-name").value = "";
+    document.getElementById("admin-product-desc").value = "";
+    document.getElementById("admin-product-price").value = "";
+    document.getElementById("admin-product-stock").value = "";
+    document.getElementById("admin-product-category").value = "";
+    document.getElementById("admin-product-image").value = "";
+    document.getElementById("admin-product-sizes").value = "";
+    document.getElementById("admin-product-colors").value = "";
+    document.getElementById("admin-product-form-title").textContent = "Add Product";
+    document.getElementById("admin-product-modal").classList.remove("hidden");
+}
+
+function editAdminProduct(p) {
+    document.getElementById("admin-product-id").value = p.id;
+    document.getElementById("admin-product-name").value = p.name;
+    document.getElementById("admin-product-desc").value = p.description || "";
+    document.getElementById("admin-product-price").value = p.price;
+    document.getElementById("admin-product-stock").value = p.stock;
+    document.getElementById("admin-product-category").value = p.category;
+    document.getElementById("admin-product-image").value = p.image_url || "";
+    document.getElementById("admin-product-sizes").value = p.sizes || "";
+    document.getElementById("admin-product-colors").value = p.colors || "";
+    document.getElementById("admin-product-form-title").textContent = "Edit Product";
+    document.getElementById("admin-product-modal").classList.remove("hidden");
+}
+
+document.getElementById("admin-product-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("admin-product-id").value;
+    const payload = {
+        name: document.getElementById("admin-product-name").value,
+        description: document.getElementById("admin-product-desc").value,
+        price: parseFloat(document.getElementById("admin-product-price").value),
+        stock: parseInt(document.getElementById("admin-product-stock").value),
+        category: document.getElementById("admin-product-category").value,
+        image_url: document.getElementById("admin-product-image").value,
+        sizes: document.getElementById("admin-product-sizes").value,
+        colors: document.getElementById("admin-product-colors").value
+    };
+    
+    try {
+        let res;
+        if (id) {
+            res = await fetch(`${API_BASE}/api/admin/products/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+        } else {
+            res = await fetch(`${API_BASE}/api/admin/products`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+        }
+        if (!res.ok) throw new Error("Operation failed");
+        showToast(`Product ${id ? 'updated' : 'added'} successfully`);
+        document.getElementById("admin-product-modal").classList.add("hidden");
+        loadAdminProducts();
+        fetchProducts(); // Refresh main store
+    } catch (err) {
+        showToast(err.message, "danger");
+    }
+});
+
+async function deleteAdminProduct(id) {
+    if(!confirm("Are you sure you want to delete this product?")) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/products/${id}`, {
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if(!res.ok) throw new Error("Failed to delete");
+        showToast("Product deleted");
+        loadAdminProducts();
+        fetchProducts();
+    } catch (err) {
+        showToast(err.message, "danger");
+    }
+}
+
+async function loadAdminOrders() {
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/orders`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if(!res.ok) throw new Error("Failed to load orders");
+        const data = await res.json();
+        
+        const list = document.getElementById("admin-orders-list");
+        list.innerHTML = `
+            <table style="width:100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <th style="padding: 1rem;">ID</th>
+                        <th style="padding: 1rem;">Customer</th>
+                        <th style="padding: 1rem;">Total</th>
+                        <th style="padding: 1rem;">Date</th>
+                        <th style="padding: 1rem;">Status</th>
+                        <th style="padding: 1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(o => `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 1rem;">${o.order_id}</td>
+                            <td style="padding: 1rem;">${o.customer_name}</td>
+                            <td style="padding: 1rem;">$${o.total_price.toFixed(2)}</td>
+                            <td style="padding: 1rem;">${o.created_at}</td>
+                            <td style="padding: 1rem;">
+                                <select onchange="updateAdminOrderStatus(${o.order_id}, this.value)" style="background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-primary); padding:0.3rem;">
+                                    <option value="Pending" ${o.order_status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="Processing" ${o.order_status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                    <option value="Shipped" ${o.order_status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                    <option value="Out For Delivery" ${o.order_status === 'Out For Delivery' ? 'selected' : ''}>Out For Delivery</option>
+                                    <option value="Delivered" ${o.order_status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                </select>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <button class="btn btn-secondary btn-sm" onclick="showToast('Feature coming soon')">View</button>
+                            </td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+    } catch (err) {
+        showToast("Error loading orders", "danger");
+    }
+}
+
+async function updateAdminOrderStatus(id, status) {
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/orders/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({ order_status: status })
+        });
+        if(!res.ok) throw new Error("Failed to update status");
+        showToast(`Order #${id} status updated to ${status}`);
+    } catch (err) {
+        showToast(err.message, "danger");
+    }
+}
+
+async function loadAdminUsers() {
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/users`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if(!res.ok) throw new Error("Failed to load users");
+        const data = await res.json();
+        
+        const list = document.getElementById("admin-users-list");
+        list.innerHTML = `
+            <table style="width:100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <th style="padding: 1rem;">ID</th>
+                        <th style="padding: 1rem;">Name</th>
+                        <th style="padding: 1rem;">Email</th>
+                        <th style="padding: 1rem;">Role</th>
+                        <th style="padding: 1rem;">Joined</th>
+                        <th style="padding: 1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(u => `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 1rem;">${u.id}</td>
+                            <td style="padding: 1rem;">${u.full_name}</td>
+                            <td style="padding: 1rem;">${u.email}</td>
+                            <td style="padding: 1rem;">${u.is_admin ? 'Admin' : 'User'}</td>
+                            <td style="padding: 1rem;">${u.member_since}</td>
+                            <td style="padding: 1rem;">
+                                ${!u.is_admin ? `<button class="btn btn-secondary btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="deleteAdminUser(${u.id})">Delete</button>` : ''}
+                            </td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+    } catch (err) {
+        showToast("Error loading users", "danger");
+    }
+}
+
+async function deleteAdminUser(id) {
+    if(!confirm("Delete this user permanently?")) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/users/${id}`, {
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if(!res.ok) throw new Error("Failed to delete user");
+        showToast("User deleted");
+        loadAdminUsers();
+    } catch(err) {
+        showToast(err.message, "danger");
+    }
+}
+
+async function loadAdminReviews() {
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/reviews`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if(!res.ok) throw new Error("Failed to load reviews");
+        const data = await res.json();
+        
+        const list = document.getElementById("admin-reviews-list");
+        list.innerHTML = `
+            <table style="width:100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <th style="padding: 1rem;">Product</th>
+                        <th style="padding: 1rem;">User</th>
+                        <th style="padding: 1rem;">Rating</th>
+                        <th style="padding: 1rem;">Comment</th>
+                        <th style="padding: 1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(r => `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 1rem;">${r.product_name}</td>
+                            <td style="padding: 1rem;">${r.user_name}</td>
+                            <td style="padding: 1rem; color: #fbbf24;">${'★'.repeat(r.rating)}</td>
+                            <td style="padding: 1rem; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.comment || ''}</td>
+                            <td style="padding: 1rem;">
+                                <button class="btn btn-secondary btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="deleteAdminReview(${r.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+    } catch (err) {
+        showToast("Error loading reviews", "danger");
+    }
+}
+
+async function deleteAdminReview(id) {
+    if(!confirm("Delete this review permanently?")) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/reviews/${id}`, {
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if(!res.ok) throw new Error("Failed to delete review");
+        showToast("Review deleted");
+        loadAdminReviews();
+    } catch(err) {
+        showToast(err.message, "danger");
+    }
 }
