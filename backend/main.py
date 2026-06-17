@@ -18,6 +18,28 @@ app = FastAPI(
     version="1.0.0"
 )
 
+import os
+@app.on_event("startup")
+def startup_event():
+    # Automatically initialize tables on startup (especially needed for Vercel /tmp SQLite)
+    from database import engine
+    models.Base.metadata.create_all(bind=engine)
+    
+    # Try to seed initial data if empty
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        import init_db
+        init_db.seed_products(db)
+        init_db.seed_default_user(db)
+    except Exception as e:
+        print(f"Startup DB seeding failed: {e}")
+    finally:
+        db.close()
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok", "message": "Backend is fully operational", "timestamp": datetime.datetime.utcnow().isoformat()}
+
 # Configure CORS so the frontend can easily communicate with it locally
 app.add_middleware(
     CORSMiddleware,

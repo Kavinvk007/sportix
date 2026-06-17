@@ -4,6 +4,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sportix.db")
+if os.getenv("VERCEL") or os.getenv("VERCEL_ENV"):
+    # Vercel functions are read-only except for /tmp
+    DATABASE_URL = "sqlite:////tmp/sportix.db"
 
 # Use slightly different args depending on the DB type.
 # SQLite requires check_same_thread=False, PostgreSQL/MySQL do not.
