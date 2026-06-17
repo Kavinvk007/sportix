@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status, Header
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,7 +27,10 @@ from database import engine, SessionLocal
 import init_db
 
 # Automatically initialize tables (especially needed for Vercel /tmp SQLite)
-models.Base.metadata.create_all(bind=engine)
+try:
+    models.Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Database table creation failed: {e}")
 
 # Try to seed initial data if empty
 db = SessionLocal()
