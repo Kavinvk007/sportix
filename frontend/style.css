@@ -160,7 +160,7 @@ a {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(var(--bg-primary) == #0a0f1d ? 10 : 248, 15, 29, 0.85);
+    background: var(--panel-glass);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
