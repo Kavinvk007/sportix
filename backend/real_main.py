@@ -1270,16 +1270,16 @@ def get_order_invoice(order_id: int, user: models.User = Depends(get_current_use
 
     # Header
     pdf.set_font("Helvetica", style="B", size=20)
-    pdf.cell(200, 10, txt="SPORTIX INVOICE", ln=True, align='C')
+    pdf.cell(200, 10, text="SPORTIX INVOICE", new_x="LMARGIN", new_y="NEXT", align='C')
     pdf.ln(10)
 
     # Order Details
     pdf.set_font("Helvetica", size=12)
-    pdf.cell(100, 10, txt=f"Order ID: #{order.id}", ln=False)
-    pdf.cell(100, 10, txt=f"Date: {order.created_at.strftime('%Y-%m-%d %H:%M')}", ln=True)
-    pdf.cell(100, 10, txt=f"Customer Name: {order.customer_name}", ln=True)
-    pdf.cell(100, 10, txt=f"Billing Address: {order.address}", ln=True)
-    pdf.cell(100, 10, txt=f"Payment Method: {order.payment_method} ({order.payment_status})", ln=True)
+    pdf.cell(100, 10, text=f"Order ID: #{order.id}")
+    pdf.cell(100, 10, text=f"Date: {order.created_at.strftime('%Y-%m-%d %H:%M')}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(100, 10, text=f"Customer Name: {order.customer_name}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(100, 10, text=f"Billing Address: {order.address}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(100, 10, text=f"Payment Method: {order.payment_method} ({order.payment_status})", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(10)
 
     # Table Header
