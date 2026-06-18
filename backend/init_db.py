@@ -191,7 +191,11 @@ def seed_products(db):
 def seed_default_user(db):
     existing = db.query(User).filter(User.email == "kavin@sportix.com").first()
     if existing:
-        print("Default user already exists. Skipping user seeding.")
+        print("Default user already exists. Checking admin status...")
+        if not existing.is_admin:
+            existing.is_admin = True
+            db.commit()
+            print("Upgraded existing default user to Admin.")
         return
     print("Seeding default user: kavin@sportix.com (password: password123)...")
     default_user = User(
@@ -199,7 +203,8 @@ def seed_default_user(db):
         email="kavin@sportix.com",
         password_hash=hash_password("password123"),
         phone_number="123-456-7890",
-        profile_picture="assets/images/user_avatar.png"
+        profile_picture="assets/images/user_avatar.png",
+        is_admin=True
     )
     db.add(default_user)
     db.commit()
