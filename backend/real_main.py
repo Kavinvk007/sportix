@@ -316,11 +316,12 @@ def get_products(
     # Filtering by category
     if category and category.lower() != "all":
         query = query.filter(models.Product.category == category)
-    # Search filter (name or description)
+    # Search filter (name, description, or category)
     if search:
         query = query.filter(
             (models.Product.name.ilike(f"%{search}%")) |
-            (models.Product.description.ilike(f"%{search}%"))
+            (models.Product.description.ilike(f"%{search}%")) |
+            (models.Product.category.ilike(f"%{search}%"))
         )
     # Price range filters
     if min_price is not None:
