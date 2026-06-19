@@ -14,22 +14,22 @@
 
 ---
 
-## 🌟 Overview
+##  Overview
 
 Sportix is a feature-rich Single-Page Application (SPA) designed to provide a premium e-commerce experience. Focusing on performance and aesthetics, the platform utilizes a robust Python backend via **FastAPI** for lightning-fast API responses and a lightweight **Vanilla JavaScript** frontend featuring a dynamic theme system, custom glassmorphism components, and fluid state management.
 
 Live Demo: [Sportix on Vercel](https://sportix.vercel.app/) *(Placeholder)*
 
-## ✨ Key Features
+##  Key Features
 
-- **🔐 Secure Authentication**: JWT-based user login and registration system with role-based access control (Admin/User).
-- **🛒 Dynamic Cart & Wishlist**: Real-time cart calculations, coupon code validation, and persistent user wishlists.
-- **💳 Payment Gateway**: Secure integration with Stripe's Payment Elements for PCI-compliant checkout flows.
-- **🌗 Theme Engine**: Seamless Dark/Light mode toggle powered by dynamic CSS variables.
-- **📊 Admin Dashboard**: Comprehensive control panel featuring real-time `Chart.js` revenue analytics, order status management, and product CRUD operations.
-- **📱 Responsive Design**: A mobile-first approach ensuring perfect layouts across all screen sizes.
+- ** Secure Authentication**: JWT-based user login and registration system with role-based access control (Admin/User).
+- ** Dynamic Cart & Wishlist**: Real-time cart calculations, coupon code validation, and persistent user wishlists.
+- ** Payment Gateway**: Secure integration with Stripe's Payment Elements for PCI-compliant checkout flows.
+- ** Theme Engine**: Seamless Dark/Light mode toggle powered by dynamic CSS variables.
+- ** Admin Dashboard**: Comprehensive control panel featuring real-time `Chart.js` revenue analytics, order status management, and product CRUD operations.
+- ** Responsive Design**: A mobile-first approach ensuring perfect layouts across all screen sizes.
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 **Frontend:**
 - HTML5 / CSS3 (Custom Design System, Glassmorphism)
@@ -47,7 +47,7 @@ Live Demo: [Sportix on Vercel](https://sportix.vercel.app/) *(Placeholder)*
 **Deployment:**
 - Vercel (Serverless Functions for Backend & Static Hosting for Frontend)
 
-## 📸 Screenshots
+##  Screenshots
 
 | Home Page | Checkout & Payment |
 | :---: | :---: |
@@ -58,7 +58,7 @@ Live Demo: [Sportix on Vercel](https://sportix.vercel.app/) *(Placeholder)*
   <img src="frontend/assets/screenshots/admin_mockup.png" width="800">
 </div>
 
-## 🚀 Installation & Local Setup
+##  Installation & Local Setup
 
 ### 1. Clone the Repository
 ```bash
@@ -95,6 +95,6 @@ python -m http.server 3000
 ```
 *Visit `http://localhost:3000` in your browser.*
 
-## 📜 License
+##  License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
