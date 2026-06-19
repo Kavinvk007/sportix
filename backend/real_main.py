@@ -537,6 +537,7 @@ def register(user_data: RegisterInput, db: Session = Depends(get_db)):
             "email": new_user.email,
             "phone_number": new_user.phone_number,
             "profile_picture": new_user.profile_picture,
+            "is_admin": new_user.is_admin,
             "member_since": new_user.member_since.strftime("%Y-%m-%d")
         }
     }
@@ -566,6 +567,7 @@ def login(credentials: LoginInput, db: Session = Depends(get_db)):
             "email": user.email,
             "phone_number": user.phone_number,
             "profile_picture": user.profile_picture,
+            "is_admin": user.is_admin,
             "member_since": user.member_since.strftime("%Y-%m-%d")
         }
     }
@@ -578,6 +580,7 @@ def get_me(user: models.User = Depends(get_current_user)):
         "email": user.email,
         "phone_number": user.phone_number,
         "profile_picture": user.profile_picture,
+        "is_admin": user.is_admin,
         "member_since": user.member_since.strftime("%Y-%m-%d")
     }
 
