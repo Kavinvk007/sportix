@@ -18,7 +18,7 @@
 
 Sportix is a feature-rich Single-Page Application (SPA) designed to provide a premium e-commerce experience. Focusing on performance and aesthetics, the platform utilizes a robust Python backend via **FastAPI** for lightning-fast API responses and a lightweight **Vanilla JavaScript** frontend featuring a dynamic theme system, custom glassmorphism components, and fluid state management.
 
-Live Demo: [Sportix on Vercel](https://sportix.vercel.app/) *(Placeholder)*
+Live Demo: [Sportix on Vercel]( https://sportix-kavin-s-projects13.vercel.app/) *(Placeholder)*
 
 ##  Key Features
 
