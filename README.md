@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="frontend/assets/logo.png" alt="Sportix Logo" width="200" />
+  <img src="frontend/assets/images/logo1.png" alt="Sportix Logo" width="120">
   <h1>Sportix E-Commerce Platform</h1>
   <p>A high-performance, modern web application for premium sports gear, built with FastAPI and Vanilla JS.</p>
 </div>
