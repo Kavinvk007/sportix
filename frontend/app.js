@@ -1243,8 +1243,8 @@ function registerEventListeners() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.detail || "Login failed");
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.detail || "Invalid email or password");
             token = data.token;
             currentUser = data.user;
             localStorage.setItem("sportix_token", token);
@@ -2040,10 +2040,13 @@ function registerEventListeners() {
         backToShopBtns.forEach(btn => btn.addEventListener("click", () => showView("home")));
 
         // Logo click → home
-        document.querySelector(".logo").addEventListener("click", e => {
-            e.preventDefault();
-            showView("home");
-        });
+        const logoEl = document.querySelector(".logo");
+        if (logoEl) {
+            logoEl.addEventListener("click", e => {
+                e.preventDefault();
+                showView("home");
+            });
+        }
 
         // Profile update form
         const profileUpdateForm = document.getElementById("profile-update-form");
