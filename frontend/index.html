@@ -721,6 +721,12 @@
                     <div class="stat-card"><h3>Total Revenue</h3><span id="admin-stat-revenue">$0.00</span></div>
                 </div>
                 <div class="dash-header" style="margin-top:2rem;">
+                    <h2>Analytics</h2>
+                </div>
+                <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 2rem;">
+                    <canvas id="admin-revenue-chart" width="400" height="150"></canvas>
+                </div>
+                <div class="dash-header">
                     <h2>Recent Activities</h2>
                 </div>
                 <div id="admin-recent-activities" style="display: flex; flex-direction: column; gap: 1rem;">
@@ -861,62 +867,12 @@
 
                         <!-- Payment Methods -->
                         <div class="checkout-section">
-                            <h4 style="margin-bottom: 1rem;">2. Payment Method</h4>
-                            <div class="payment-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; overflow-x: auto; padding-bottom: 0.5rem;">
-                                <button type="button" class="btn btn-secondary btn-sm pay-tab active" data-pay="card">Card</button>
-                                <button type="button" class="btn btn-secondary btn-sm pay-tab" data-pay="upi">UPI</button>
-                                <button type="button" class="btn btn-secondary btn-sm pay-tab" data-pay="netbanking">Net Banking</button>
-                                <button type="button" class="btn btn-secondary btn-sm pay-tab" data-pay="wallet">Wallet</button>
-                                <button type="button" class="btn btn-secondary btn-sm pay-tab" data-pay="cod">COD</button>
+                            <h4 style="margin-bottom: 1rem;">2. Secure Payment</h4>
+                            <div id="payment-element" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); min-height: 200px;">
+                                <!-- Stripe Elements will be inserted here -->
+                                <div style="display:flex; justify-content:center; align-items:center; height: 100%;">Loading secure payment gateway...</div>
                             </div>
-                            
-                            <div id="pay-card" class="pay-pane active" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
-                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left; margin-bottom:1rem;">
-                                    <label for="checkout-card">Card Number</label>
-                                    <input type="text" id="checkout-card" placeholder="4111 2222 3333 4444" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                                </div>
-                                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
-                                        <label for="checkout-expiry">Expiry</label>
-                                        <input type="text" id="checkout-expiry" placeholder="MM/YY" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                                    </div>
-                                    <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
-                                        <label for="checkout-cvv">CVV</label>
-                                        <input type="password" id="checkout-cvv" placeholder="123" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="pay-upi" class="pay-pane hidden" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
-                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
-                                    <label for="checkout-upi">UPI ID</label>
-                                    <input type="text" id="checkout-upi" placeholder="username@upi" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                                </div>
-                            </div>
-                            <div id="pay-netbanking" class="pay-pane hidden" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
-                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
-                                    <label for="checkout-bank">Select Bank</label>
-                                    <select id="checkout-bank" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                                        <option value="sbi">State Bank of India</option>
-                                        <option value="hdfc">HDFC Bank</option>
-                                        <option value="icici">ICICI Bank</option>
-                                        <option value="axis">Axis Bank</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div id="pay-wallet" class="pay-pane hidden" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
-                                <div class="form-group" style="display:flex; flex-direction:column; gap:0.35rem; text-align:left;">
-                                    <label for="checkout-wallet">Select Wallet</label>
-                                    <select id="checkout-wallet" style="width:100%; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                                        <option value="paytm">Paytm Wallet</option>
-                                        <option value="phonepe">PhonePe Wallet</option>
-                                        <option value="amazon">Amazon Pay</option>
-                                        <option value="gpay">Google Pay</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div id="pay-cod" class="pay-pane hidden" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); text-align: center;">
-                                <p style="color: var(--text-secondary);">Pay in cash when your order arrives.</p>
-                            </div>
+                            <div id="payment-message" class="hidden" style="color: var(--danger); font-size: 0.9rem; margin-top: 0.5rem;"></div>
                         </div>
 
                         <div class="secure-checkout-indicator" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; color: var(--success); font-size: 0.85rem; font-weight: 600;">
@@ -1007,6 +963,8 @@
     </div>
     <!-- Dynamic Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

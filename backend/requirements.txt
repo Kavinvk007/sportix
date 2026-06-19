@@ -4,5 +4,6 @@ sqlalchemy
 pymysql
 cryptography
 email-validator
-fpdf2
+
 pydantic[email]
+stripe

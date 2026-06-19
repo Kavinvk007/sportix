@@ -1,74 +1,100 @@
-# Sportix - Premium Sports E-Commerce Platform
+<div align="center">
+  <img src="frontend/assets/logo.png" alt="Sportix Logo" width="200" />
+  <h1>Sportix E-Commerce Platform</h1>
+  <p>A high-performance, modern web application for premium sports gear, built with FastAPI and Vanilla JS.</p>
+</div>
 
-Sportix is a modern, production-ready sports e-commerce web application. It features a scalable FastAPI backend, a sleek responsive frontend, and a fully functional administrative dashboard.
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#screenshots">Screenshots</a> •
+  <a href="#architecture">Architecture</a>
+</p>
 
-## 🌟 Key Features
+---
 
-**E-Commerce Core**
-* **Dynamic Product Catalog**: Browse gear by sport, filter by categories, and search in real-time.
-* **Shopping Cart & Checkout**: Secure simulated checkout with form validation and real-time math.
-* **Inventory Management**: Built-in stock limits that automatically deduct upon successful orders.
-* **Coupons & Discounts**: Apply custom discount codes natively during checkout.
+## 🌟 Overview
 
-**User Experience**
-* **JWT Authentication**: Secure user registration, login, and profile management.
-* **Order Tracking Timeline**: Visual milestone tracking (Pending → Processing → Shipped → Delivered).
-* **PDF Invoice Generation**: Download beautifully formatted PDF receipts for any placed order.
-* **Wishlist System**: Save favorite products across sessions.
-* **Product Reviews & Ratings**: Authenticated users can leave and view reviews.
+Sportix is a feature-rich Single-Page Application (SPA) designed to provide a premium e-commerce experience. Focusing on performance and aesthetics, the platform utilizes a robust Python backend via **FastAPI** for lightning-fast API responses and a lightweight **Vanilla JavaScript** frontend featuring a dynamic theme system, custom glassmorphism components, and fluid state management.
 
-**👑 Administrative Dashboard**
-* **Role-Based Access Control**: Secure `/api/admin` routes protected by JWT admin claims.
-* **Analytics**: Real-time sales, user, and order statistics.
-* **Inventory Control**: Add, edit, or delete products seamlessly via UI modals.
-* **Order & User Moderation**: Update order statuses and moderate user accounts/reviews.
+Live Demo: [Sportix on Vercel](https://sportix.vercel.app/) *(Placeholder)*
 
-## 🏗️ Architecture & Tech Stack
+## ✨ Key Features
 
-* **Backend**: FastAPI (Python)
-* **Database**: MySQL with SQLAlchemy ORM (SQLite used for local dev interchangeably)
-* **Frontend**: Vanilla HTML5, CSS3 (Custom Design System), JavaScript (ES6)
-* **PDF Generation**: `fpdf2`
-* **Deployment Setup**: Pre-configured `vercel.json` for serverless deployment
+- **🔐 Secure Authentication**: JWT-based user login and registration system with role-based access control (Admin/User).
+- **🛒 Dynamic Cart & Wishlist**: Real-time cart calculations, coupon code validation, and persistent user wishlists.
+- **💳 Payment Gateway**: Secure integration with Stripe's Payment Elements for PCI-compliant checkout flows.
+- **🌗 Theme Engine**: Seamless Dark/Light mode toggle powered by dynamic CSS variables.
+- **📊 Admin Dashboard**: Comprehensive control panel featuring real-time `Chart.js` revenue analytics, order status management, and product CRUD operations.
+- **📱 Responsive Design**: A mobile-first approach ensuring perfect layouts across all screen sizes.
 
-## 🚀 Setup Instructions (Local Development)
+## 🛠 Tech Stack
 
-### 1. Configure the Database
-Ensure a local SQL database is running (or configure `database.py` for SQLite). By default, Sportix attempts to connect to:
-* Host: `localhost` | Port: `3306` | User: `root` | Password: `empty`
+**Frontend:**
+- HTML5 / CSS3 (Custom Design System, Glassmorphism)
+- Vanilla JavaScript (ES6+ Modules, Fetch API)
+- Chart.js (Analytics)
+- Stripe.js (Payments)
 
-### 2. Install Dependencies
-Navigate to the `backend` folder and install the Python dependencies:
+**Backend:**
+- Python 3.9+
+- FastAPI & Pydantic
+- SQLAlchemy (ORM) & SQLite (Database)
+- Passlib & JWT (Security)
+- Stripe Python SDK
+
+**Deployment:**
+- Vercel (Serverless Functions for Backend & Static Hosting for Frontend)
+
+## 📸 Screenshots
+
+| Home Page | Checkout & Payment |
+| :---: | :---: |
+| <img src="frontend/assets/screenshots/home_page_mockup.png" width="400"> | <img src="frontend/assets/screenshots/checkout_mockup.png" width="400"> |
+
+<div align="center">
+  <b>Admin Dashboard Analytics</b><br>
+  <img src="frontend/assets/screenshots/admin_mockup.png" width="800">
+</div>
+
+## 🚀 Installation & Local Setup
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/sportix.git
+cd sportix
+```
+
+### 2. Backend Setup
 ```bash
 cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 pip install -r requirements.txt
 ```
 
-### 3. Initialize the Database
-Run the setup script to create tables and insert dummy products:
+Set your environment variables (create a `.env` file or export them):
 ```bash
-python init_db.py
+export STRIPE_SECRET_KEY="sk_test_..."
+export SECRET_KEY="your_jwt_secret"
 ```
 
-### 4. Run the Backend Server
-Start the Uvicorn server:
+Start the FastAPI server:
 ```bash
-uvicorn main:app --reload
+uvicorn real_main:app --reload
 ```
-* API runs at: `http://127.0.0.1:8000`
-* Swagger Docs: `http://127.0.0.1:8000/docs`
+*The API will be available at `http://127.0.0.1:8000`*
 
-### 5. Run the Frontend
-Simply open `frontend/index.html` in your browser, or serve the directory using a lightweight HTTP server:
+### 3. Frontend Setup
+You can serve the `frontend/` directory using any static file server:
 ```bash
-cd frontend
+# Example using Python's built-in http.server
+cd ../frontend
 python -m http.server 3000
 ```
-
-## 🌍 Production Environment Configuration
-Sportix is ready for production out-of-the-box. The repository includes a `vercel.json` file designed to seamlessly host the frontend statics and map the FastAPI backend to Vercel Serverless Functions.
-* Simply connect this repository to your Vercel account.
-* The frontend will serve automatically, and `/api/*` routes will hit the backend.
+*Visit `http://localhost:3000` in your browser.*
 
 ## 📜 License
-This project is open-source and available under the MIT License.
+
+This project is licensed under the MIT License - see the LICENSE file for details.

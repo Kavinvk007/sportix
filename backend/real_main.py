@@ -15,6 +15,10 @@ import base64
 import json
 import time
 import datetime
+import stripe
+
+# Use environment variable for Stripe key
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "") # Use environment variable for Stripe key
 
 app = FastAPI(
     title="Sportix E-Commerce API",
@@ -348,6 +352,42 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
             detail=f"Product with id {product_id} not found"
         )
     return product
+class PaymentIntentInput(BaseModel):
+    items: List[CartItemInput]
+    coupon_code: Optional[str] = None
+
+@app.post("/api/create-payment-intent")
+def create_payment_intent(data: PaymentIntentInput, db: Session = Depends(get_db)):
+    subtotal = 0.0
+    for item in data.items:
+        product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+        if product:
+            subtotal += product.price * item.quantity
+            
+    discount_amount = 0.0
+    if data.coupon_code:
+        coupon = db.query(models.Coupon).filter(models.Coupon.code == data.coupon_code, models.Coupon.is_active == True).first()
+        if coupon:
+            discount_amount = (subtotal * coupon.discount_percentage) / 100
+            
+    total_price = subtotal - discount_amount
+    if total_price <= 0:
+        total_price = 1.0 # Minimum charge
+    
+    amount_cents = int(total_price * 100)
+    
+    try:
+        intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency='usd',
+            automatic_payment_methods={
+                'enabled': True,
+            },
+        )
+        return {"clientSecret": intent.client_secret}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @app.post("/api/checkout", status_code=status.HTTP_201_CREATED)
 def checkout(order_data: CheckoutInput, db: Session = Depends(get_db), user: Optional[models.User] = Depends(get_current_user_optional)):
     if not order_data.items:
