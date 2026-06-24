@@ -62,7 +62,7 @@ Live Demo: [Sportix on Vercel]( https://sportix-kavin-s-projects13.vercel.app/) 
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/sportix.git
+git clone https://github.com/kavinvk007/sportix.git
 cd sportix
 ```
 
